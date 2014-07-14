@@ -158,6 +158,25 @@ func (j *Node) GetIndex(index int) *Node {
 	return &Node{nil}
 }
 
+// GetPathAny is like GetPath, except it can also go through arrays
+// using GetIndex().
+//
+//   js.GetPathAny("top_level", "entries", 3, "dict")
+func (j *Node) GetPathAny(branch ...interface{}) *Node {
+	jin := j
+	for _, p := range branch {
+		switch p.(type) {
+		case string:
+			jin = jin.Get(p.(string))
+		case int:
+			jin = jin.GetIndex(p.(int))
+		default:
+			jin = &Node{nil}
+		}
+	}
+	return jin
+}
+
 // CheckGet returns a pointer to a new `Node` object and
 // a `bool` identifying success or failure
 //
@@ -304,31 +323,6 @@ func (j *Node) MustString(args ...string) string {
 	s, err := j.String()
 	if err == nil {
 		return s
-	}
-
-	return def
-}
-
-// MustStringArray guarantees the return of a `[]string` (with optional default)
-//
-// useful when you want to interate over array values in a succinct manner:
-//		for i, s := range js.Get("results").MustStringArray() {
-//			fmt.Println(i, s)
-//		}
-func (j *Node) MustStringArray(args ...[]string) []string {
-	var def []string
-
-	switch len(args) {
-	case 0:
-	case 1:
-		def = args[0]
-	default:
-		log.Panicf("MustStringArray() received too many arguments %d", len(args))
-	}
-
-	a, err := j.StringArray()
-	if err == nil {
-		return a
 	}
 
 	return def
