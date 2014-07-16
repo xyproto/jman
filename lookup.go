@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	// For when retrieving a node does not return a specific key/value, but perhaps a map
+	// ErrSpecificNode is for when retrieving a node does not return a specific key/value, but perhaps a map
 	ErrSpecificNode = errors.New("Could not find a specific node that matched the given path")
 )
 
