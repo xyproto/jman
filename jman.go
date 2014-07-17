@@ -24,6 +24,8 @@ type (
 	AnyMap    map[string]interface{}
 )
 
+var NilNode = &Node{nil}
+
 // New returns a pointer to a new `Node` object
 // after unmarshaling `body` bytes
 func New(body []byte) (*Node, error) {
@@ -155,9 +157,8 @@ func (j *Node) Get(branch ...interface{}) *Node {
 	jin, ok := j.CheckGet(branch...)
 	if ok {
 		return jin
-	} else {
-		return &Node{nil}
 	}
+	return NilNode
 }
 
 // CheckGet is like Get, except it also returns a bool
