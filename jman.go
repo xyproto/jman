@@ -44,8 +44,8 @@ func NewNode() *Node {
 	}
 }
 
-// CheckInterface returns the underlying data
-func (j *Node) CheckInterface() interface{} {
+// Interface returns the underlying data
+func (j *Node) Interface() interface{} {
 	return j.data
 }
 
