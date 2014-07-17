@@ -42,8 +42,8 @@ func NewNode() *Node {
 	}
 }
 
-// Interface returns the underlying data
-func (j *Node) Interface() interface{} {
+// CheckInterface returns the underlying data
+func (j *Node) CheckInterface() interface{} {
 	return j.data
 }
 
@@ -62,10 +62,10 @@ func (j *Node) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&j.data)
 }
 
-// Set modifies `Node` map by `key` and `value`.
+// Set modifies `Node` map by `key` and `value`
 // Useful for changing single key/value in a `Node` object easily.
 func (j *Node) Set(key string, val interface{}) {
-	m, err := j.Map()
+	m, err := j.CheckMap()
 	if err != nil {
 		return
 	}
@@ -113,7 +113,7 @@ func (j *Node) SetPath(branch []string, val interface{}) {
 
 // Del modifies `Node` map by deleting `key` if it is present.
 func (j *Node) Del(key string) {
-	m, err := j.Map()
+	m, err := j.CheckMap()
 	if err != nil {
 		return
 	}
@@ -124,7 +124,7 @@ func (j *Node) Del(key string) {
 // for `key` in its `map` representation
 // and a bool identifying success or failure
 func (j *Node) GetKey(key string) (*Node, bool) {
-	m, err := j.Map()
+	m, err := j.CheckMap()
 	if err == nil {
 		if val, ok := m[key]; ok {
 			return &Node{val}, true
@@ -137,7 +137,7 @@ func (j *Node) GetKey(key string) (*Node, bool) {
 // for `index` in its `array` representation
 // and a bool identifying success or failure
 func (j *Node) GetIndex(index int) (*Node, bool) {
-	a, err := j.Array()
+	a, err := j.CheckArray()
 	if err == nil {
 		if len(a) > index {
 			return &Node{a[index]}, true
@@ -184,9 +184,9 @@ func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
 	return jin, true
 }
 
-// JsonMap returns a copy of a Json map, but with values as Nodes
-func (j *Node) JsonMap() (NodeMap, error) {
-	m, err := j.Map()
+// CheckJsonMap returns a copy of a Json map, but with values as Nodes
+func (j *Node) CheckJsonMap() (NodeMap, error) {
+	m, err := j.CheckMap()
 	if err != nil {
 		return nil, err
 	}
@@ -197,9 +197,9 @@ func (j *Node) JsonMap() (NodeMap, error) {
 	return jm, nil
 }
 
-// JsonArray returns a copy of an array, but with each value as a Node
-func (j *Node) JsonArray() ([]*Node, error) {
-	a, err := j.Array()
+// CheckJsonArray returns a copy of an array, but with each value as a Json
+func (j *Node) CheckJsonArray() ([]*Node, error) {
+	a, err := j.CheckArray()
 	if err != nil {
 		return nil, err
 	}
@@ -210,59 +210,59 @@ func (j *Node) JsonArray() ([]*Node, error) {
 	return ja, nil
 }
 
-// Map type asserts to `map`
-func (j *Node) Map() (AnyMap, error) {
+// CheckMap type asserts to `map`
+func (j *Node) CheckMap() (AnyMap, error) {
 	if m, ok := (j.data).(AnyMap); ok {
 		return m, nil
 	}
 	return nil, errors.New("type assertion to map[string]interface{} failed")
 }
 
-// Array type asserts to an `array`
-func (j *Node) Array() ([]interface{}, error) {
+// CheckArray type asserts to an `array`
+func (j *Node) CheckArray() ([]interface{}, error) {
 	if a, ok := (j.data).([]interface{}); ok {
 		return a, nil
 	}
 	return nil, errors.New("type assertion to []interface{} failed")
 }
 
-// Bool type asserts to `bool`
-func (j *Node) Bool() (bool, error) {
+// CheckBool type asserts to `bool`
+func (j *Node) CheckBool() (bool, error) {
 	if s, ok := (j.data).(bool); ok {
 		return s, nil
 	}
 	return false, errors.New("type assertion to bool failed")
 }
 
-// String type asserts to `string`
-func (j *Node) String() (string, error) {
+// CheckString type asserts to `string`
+func (j *Node) CheckString() (string, error) {
 	if s, ok := (j.data).(string); ok {
 		return s, nil
 	}
 	return "", errors.New("type assertion to string failed")
 }
 
-// Bytes type asserts to `[]byte`
-func (j *Node) Bytes() ([]byte, error) {
+// CheckBytes type asserts to `[]byte`
+func (j *Node) CheckBytes() ([]byte, error) {
 	if s, ok := (j.data).(string); ok {
 		return []byte(s), nil
 	}
 	return nil, errors.New("type assertion to []byte failed")
 }
 
-// MustJsonArray guarantees the return of a `[]interface{}` (with optional default)
-func (j *Node) MustJsonArray(args ...NodeSlice) NodeSlice {
-	var def NodeSlice
+// JsonArray guarantees the return of a `[]interface{}` (with optional default)
+func (j *Node) JsonArray(args ...[]*Node) []*Node {
+	var def []*Node
 
 	switch len(args) {
 	case 0:
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustJsonArray() received too many arguments %d", len(args))
+		log.Panicf("JsonArray() received too many arguments %d", len(args))
 	}
 
-	a, err := j.JsonArray()
+	a, err := j.CheckJsonArray()
 	if err == nil {
 		return a
 	}
@@ -270,8 +270,8 @@ func (j *Node) MustJsonArray(args ...NodeSlice) NodeSlice {
 	return def
 }
 
-// MustJsonMap guarantees the return of a `map[string]interface{}` (with optional default)
-func (j *Node) MustJsonMap(args ...NodeMap) NodeMap {
+// JsonMap guarantees the return of a `map[string]interface{}` (with optional default)
+func (j *Node) JsonMap(args ...NodeMap) NodeMap {
 	var def NodeMap
 
 	switch len(args) {
@@ -279,10 +279,10 @@ func (j *Node) MustJsonMap(args ...NodeMap) NodeMap {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustJsonMap() received too many arguments %d", len(args))
+		log.Panicf("JsonMap() received too many arguments %d", len(args))
 	}
 
-	a, err := j.JsonMap()
+	a, err := j.CheckJsonMap()
 	if err == nil {
 		return a
 	}
@@ -290,13 +290,13 @@ func (j *Node) MustJsonMap(args ...NodeMap) NodeMap {
 	return def
 }
 
-// MustArray guarantees the return of a `[]interface{}` (with optional default)
+// Array guarantees the return of a `[]interface{}` (with optional default)
 //
 // useful when you want to interate over array values in a succinct manner:
-//		for i, v := range js.Get("results").MustArray() {
+//		for i, v := range js.Get("results").Array() {
 //			fmt.Println(i, v)
 //		}
-func (j *Node) MustArray(args ...[]interface{}) []interface{} {
+func (j *Node) Array(args ...[]interface{}) []interface{} {
 	var def []interface{}
 
 	switch len(args) {
@@ -304,10 +304,10 @@ func (j *Node) MustArray(args ...[]interface{}) []interface{} {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustArray() received too many arguments %d", len(args))
+		log.Panicf("Array() received too many arguments %d", len(args))
 	}
 
-	a, err := j.Array()
+	a, err := j.CheckArray()
 	if err == nil {
 		return a
 	}
@@ -315,13 +315,13 @@ func (j *Node) MustArray(args ...[]interface{}) []interface{} {
 	return def
 }
 
-// MustMap guarantees the return of a `map[string]interface{}` (with optional default)
+// Map guarantees the return of a `map[string]interface{}` (with optional default)
 //
 // useful when you want to interate over map values in a succinct manner:
-//		for k, v := range js.Get("dictionary").MustMap() {
+//		for k, v := range js.Get("dictionary").Map() {
 //			fmt.Println(k, v)
 //		}
-func (j *Node) MustMap(args ...AnyMap) AnyMap {
+func (j *Node) Map(args ...AnyMap) AnyMap {
 	var def AnyMap
 
 	switch len(args) {
@@ -329,10 +329,10 @@ func (j *Node) MustMap(args ...AnyMap) AnyMap {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustMap() received too many arguments %d", len(args))
+		log.Panicf("Map() received too many arguments %d", len(args))
 	}
 
-	a, err := j.Map()
+	a, err := j.CheckMap()
 	if err == nil {
 		return a
 	}
@@ -340,11 +340,11 @@ func (j *Node) MustMap(args ...AnyMap) AnyMap {
 	return def
 }
 
-// MustString guarantees the return of a `string` (with optional default)
+// String guarantees the return of a `string` (with optional default)
 //
 // useful when you explicitly want a `string` in a single value return context:
-//     myFunc(js.Get("param1").MustString(), js.Get("optional_param").MustString("my_default"))
-func (j *Node) MustString(args ...string) string {
+//     myFunc(js.Get("param1").String(), js.Get("optional_param").String("my_default"))
+func (j *Node) String(args ...string) string {
 	var def string
 
 	switch len(args) {
@@ -352,10 +352,10 @@ func (j *Node) MustString(args ...string) string {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustString() received too many arguments %d", len(args))
+		log.Panicf("String() received too many arguments %d", len(args))
 	}
 
-	s, err := j.String()
+	s, err := j.CheckString()
 	if err == nil {
 		return s
 	}
@@ -363,11 +363,11 @@ func (j *Node) MustString(args ...string) string {
 	return def
 }
 
-// MustInt guarantees the return of an `int` (with optional default)
+// Int guarantees the return of an `int` (with optional default)
 //
 // useful when you explicitly want an `int` in a single value return context:
-//     myFunc(js.Get("param1").MustInt(), js.Get("optional_param").MustInt(5150))
-func (j *Node) MustInt(args ...int) int {
+//     myFunc(js.Get("param1").Int(), js.Get("optional_param").Int(5150))
+func (j *Node) Int(args ...int) int {
 	var def int
 
 	switch len(args) {
@@ -375,10 +375,10 @@ func (j *Node) MustInt(args ...int) int {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustInt() received too many arguments %d", len(args))
+		log.Panicf("Int() received too many arguments %d", len(args))
 	}
 
-	i, err := j.Int()
+	i, err := j.CheckInt()
 	if err == nil {
 		return i
 	}
@@ -386,11 +386,11 @@ func (j *Node) MustInt(args ...int) int {
 	return def
 }
 
-// MustFloat64 guarantees the return of a `float64` (with optional default)
+// Float64 guarantees the return of a `float64` (with optional default)
 //
 // useful when you explicitly want a `float64` in a single value return context:
-//     myFunc(js.Get("param1").MustFloat64(), js.Get("optional_param").MustFloat64(5.150))
-func (j *Node) MustFloat64(args ...float64) float64 {
+//     myFunc(js.Get("param1").Float64(), js.Get("optional_param").Float64(5.150))
+func (j *Node) Float64(args ...float64) float64 {
 	var def float64
 
 	switch len(args) {
@@ -398,10 +398,10 @@ func (j *Node) MustFloat64(args ...float64) float64 {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustFloat64() received too many arguments %d", len(args))
+		log.Panicf("Float64() received too many arguments %d", len(args))
 	}
 
-	f, err := j.Float64()
+	f, err := j.CheckFloat64()
 	if err == nil {
 		return f
 	}
@@ -409,11 +409,11 @@ func (j *Node) MustFloat64(args ...float64) float64 {
 	return def
 }
 
-// MustBool guarantees the return of a `bool` (with optional default)
+// Bool guarantees the return of a `bool` (with optional default)
 //
 // useful when you explicitly want a `bool` in a single value return context:
-//     myFunc(js.Get("param1").MustBool(), js.Get("optional_param").MustBool(true))
-func (j *Node) MustBool(args ...bool) bool {
+//     myFunc(js.Get("param1").Bool(), js.Get("optional_param").Bool(true))
+func (j *Node) Bool(args ...bool) bool {
 	var def bool
 
 	switch len(args) {
@@ -421,10 +421,10 @@ func (j *Node) MustBool(args ...bool) bool {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustBool() received too many arguments %d", len(args))
+		log.Panicf("Bool() received too many arguments %d", len(args))
 	}
 
-	b, err := j.Bool()
+	b, err := j.CheckBool()
 	if err == nil {
 		return b
 	}
@@ -432,11 +432,11 @@ func (j *Node) MustBool(args ...bool) bool {
 	return def
 }
 
-// MustInt64 guarantees the return of an `int64` (with optional default)
+// Int64 guarantees the return of an `int64` (with optional default)
 //
 // useful when you explicitly want an `int64` in a single value return context:
-//     myFunc(js.Get("param1").MustInt64(), js.Get("optional_param").MustInt64(5150))
-func (j *Node) MustInt64(args ...int64) int64 {
+//     myFunc(js.Get("param1").Int64(), js.Get("optional_param").Int64(5150))
+func (j *Node) Int64(args ...int64) int64 {
 	var def int64
 
 	switch len(args) {
@@ -444,10 +444,10 @@ func (j *Node) MustInt64(args ...int64) int64 {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustInt64() received too many arguments %d", len(args))
+		log.Panicf("Int64() received too many arguments %d", len(args))
 	}
 
-	i, err := j.Int64()
+	i, err := j.CheckInt64()
 	if err == nil {
 		return i
 	}
@@ -455,11 +455,11 @@ func (j *Node) MustInt64(args ...int64) int64 {
 	return def
 }
 
-// MustUint64 guarantees the return of an `uint64` (with optional default)
+// Uint64 guarantees the return of an `uint64` (with optional default)
 //
 // useful when you explicitly want an `uint64` in a single value return context:
-//     myFunc(js.Get("param1").MustUint64(), js.Get("optional_param").MustUint64(5150))
-func (j *Node) MustUint64(args ...uint64) uint64 {
+//     myFunc(js.Get("param1").Uint64(), js.Get("optional_param").Uint64(5150))
+func (j *Node) Uint64(args ...uint64) uint64 {
 	var def uint64
 
 	switch len(args) {
@@ -467,10 +467,10 @@ func (j *Node) MustUint64(args ...uint64) uint64 {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("MustUint64() received too many arguments %d", len(args))
+		log.Panicf("Uint64() received too many arguments %d", len(args))
 	}
 
-	i, err := j.Uint64()
+	i, err := j.CheckUint64()
 	if err == nil {
 		return i
 	}
@@ -495,7 +495,7 @@ func NewFromReader(r io.Reader) (*Node, error) {
 }
 
 // Float64 coerces into a float64
-func (j *Node) Float64() (float64, error) {
+func (j *Node) CheckFloat64() (float64, error) {
 	switch j.data.(type) {
 	case json.Number:
 		return j.data.(json.Number).Float64()
@@ -510,7 +510,7 @@ func (j *Node) Float64() (float64, error) {
 }
 
 // Int coerces into an int
-func (j *Node) Int() (int, error) {
+func (j *Node) CheckInt() (int, error) {
 	switch j.data.(type) {
 	case json.Number:
 		i, err := j.data.(json.Number).Int64()
@@ -526,7 +526,7 @@ func (j *Node) Int() (int, error) {
 }
 
 // Int64 coerces into an int64
-func (j *Node) Int64() (int64, error) {
+func (j *Node) CheckInt64() (int64, error) {
 	switch j.data.(type) {
 	case json.Number:
 		return j.data.(json.Number).Int64()
@@ -541,7 +541,7 @@ func (j *Node) Int64() (int64, error) {
 }
 
 // Uint64 coerces into an uint64
-func (j *Node) Uint64() (uint64, error) {
+func (j *Node) CheckUint64() (uint64, error) {
 	switch j.data.(type) {
 	case json.Number:
 		return strconv.ParseUint(j.data.(json.Number).String(), 10, 64)

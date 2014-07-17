@@ -3,7 +3,6 @@ package jman
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"strconv"
 	"strings"
@@ -92,16 +91,11 @@ func (jf *JSONFile) GetNode(JSONpath string) (*Node, error) {
 
 // GetString will find the string that corresponds to the given JSON Path
 func (jf *JSONFile) GetString(JSONpath string) (string, error) {
-	foundnode, err := jf.GetNode(JSONpath)
+	node, err := jf.GetNode(JSONpath)
 	if err != nil {
 		return "", err
 	}
-	result, err := foundnode.String()
-	if err != nil {
-		s := fmt.Sprint(foundnode)
-		return s, fmt.Errorf("Result was not a string: %v", s)
-	}
-	return result, nil
+	return node.String(), nil
 }
 
 func (jf *JSONFile) SetString(JSONpath, value string) error {
