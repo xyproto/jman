@@ -250,27 +250,6 @@ func (j *Node) Bytes() ([]byte, error) {
 	return nil, errors.New("type assertion to []byte failed")
 }
 
-// StringArray type asserts to an `array` of `string`
-func (j *Node) StringArray() ([]string, error) {
-	arr, err := j.Array()
-	if err != nil {
-		return nil, err
-	}
-	retArr := make([]string, 0, len(arr))
-	for _, a := range arr {
-		if a == nil {
-			retArr = append(retArr, "")
-			continue
-		}
-		s, ok := a.(string)
-		if !ok {
-			return nil, err
-		}
-		retArr = append(retArr, s)
-	}
-	return retArr, nil
-}
-
 // MustJsonArray guarantees the return of a `[]interface{}` (with optional default)
 func (j *Node) MustJsonArray(args ...NodeSlice) NodeSlice {
 	var def NodeSlice
