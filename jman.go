@@ -157,8 +157,9 @@ func (j *Node) Get(branch ...interface{}) *Node {
 	jin, ok := j.CheckGet(branch...)
 	if ok {
 		return jin
+	} else {
+		return NilNode
 	}
-	return NilNode
 }
 
 // CheckGet is like Get, except it also returns a bool
@@ -185,8 +186,8 @@ func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
 	return jin, true
 }
 
-// CheckJsonMap returns a copy of a Json map, but with values as Nodes
-func (j *Node) CheckJsonMap() (NodeMap, error) {
+// CheckNodeMap returns a copy of a Json map, but with values as Nodes
+func (j *Node) CheckNodeMap() (NodeMap, error) {
 	m, err := j.CheckMap()
 	if err != nil {
 		return nil, err
@@ -198,8 +199,8 @@ func (j *Node) CheckJsonMap() (NodeMap, error) {
 	return jm, nil
 }
 
-// CheckJsonArray returns a copy of an array, but with each value as a Json
-func (j *Node) CheckJsonArray() ([]*Node, error) {
+// CheckNodeSlice returns a copy of an array, but with each value as a Json
+func (j *Node) CheckNodeSlice() (NodeSlice, error) {
 	a, err := j.CheckArray()
 	if err != nil {
 		return nil, err
@@ -251,19 +252,19 @@ func (j *Node) CheckBytes() ([]byte, error) {
 	return nil, errors.New("type assertion to []byte failed")
 }
 
-// JsonArray guarantees the return of a `[]interface{}` (with optional default)
-func (j *Node) JsonArray(args ...[]*Node) []*Node {
-	var def []*Node
+// NodeSlice guarantees the return of a `[]interface{}` (with optional default)
+func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
+	var def NodeSlice
 
 	switch len(args) {
 	case 0:
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("JsonArray() received too many arguments %d", len(args))
+		log.Panicf("NodeSlice() received too many arguments %d", len(args))
 	}
 
-	a, err := j.CheckJsonArray()
+	a, err := j.CheckNodeSlice()
 	if err == nil {
 		return a
 	}
@@ -271,8 +272,8 @@ func (j *Node) JsonArray(args ...[]*Node) []*Node {
 	return def
 }
 
-// JsonMap guarantees the return of a `map[string]interface{}` (with optional default)
-func (j *Node) JsonMap(args ...NodeMap) NodeMap {
+// NodeMap guarantees the return of a `map[string]interface{}` (with optional default)
+func (j *Node) NodeMap(args ...NodeMap) NodeMap {
 	var def NodeMap
 
 	switch len(args) {
@@ -280,10 +281,10 @@ func (j *Node) JsonMap(args ...NodeMap) NodeMap {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("JsonMap() received too many arguments %d", len(args))
+		log.Panicf("NodeMap() received too many arguments %d", len(args))
 	}
 
-	a, err := j.CheckJsonMap()
+	a, err := j.CheckNodeMap()
 	if err == nil {
 		return a
 	}
