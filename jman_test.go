@@ -70,7 +70,7 @@ func TestSimplejson(t *testing.T) {
 	ms2 := js.Get("test").Get("missing_string").String("fyea")
 	assert.Equal(t, "fyea", ms2)
 
-	ma2 := js.Get("test").Get("missing_array").Array([]interface{}{"1", 2, "3"})
+	ma2 := js.Get("test").Get("missing_array").Slice([]interface{}{"1", 2, "3"})
 	assert.Equal(t, ma2, []interface{}{"1", 2, "3"})
 
 	mm2 := js.Get("test").Get("missing_map").Map(map[string]interface{}{"found": false})
@@ -88,13 +88,13 @@ func TestSimplejson(t *testing.T) {
 	gpa2, _ := js.Get("test", "arraywithsubs", 1, "subkeythree").CheckInt()
 	assert.Equal(t, 3, gpa2)
 
-	jm, err := js.Get("test").CheckNodeMap()
-	assert.Equal(t, err, nil)
+	jm, ok := js.Get("test").CheckNodeMap()
+	assert.Equal(t, ok, true)
 	jmbool, _ := jm["bool"].CheckBool()
 	assert.Equal(t, true, jmbool)
 
-	ja, err := js.Get("test", "string_array").CheckNodeSlice()
-	assert.Equal(t, err, nil)
+	ja, ok := js.Get("test", "string_array").CheckNodeSlice()
+	assert.Equal(t, ok, true)
 	jastr, _ := ja[0].CheckString()
 	assert.Equal(t, "asdf", jastr)
 
@@ -153,8 +153,8 @@ func TestSet(t *testing.T) {
 
 	js.Set("baz", "bing")
 
-	s, err := js.Get("baz").CheckString()
-	assert.Equal(t, nil, err)
+	s, ok := js.Get("baz").CheckString()
+	assert.Equal(t, true, ok)
 	assert.Equal(t, "bing", s)
 }
 
@@ -165,8 +165,8 @@ func TestReplace(t *testing.T) {
 	err = js.UnmarshalJSON([]byte(`{"baz":"bing"}`))
 	assert.Equal(t, nil, err)
 
-	s, err := js.Get("baz").CheckString()
-	assert.Equal(t, nil, err)
+	s, ok := js.Get("baz").CheckString()
+	assert.Equal(t, true, ok)
 	assert.Equal(t, "bing", s)
 }
 
@@ -176,8 +176,8 @@ func TestSetPath(t *testing.T) {
 
 	js.SetPath([]string{"foo", "bar"}, "baz")
 
-	s, err := js.Get("foo", "bar").CheckString()
-	assert.Equal(t, nil, err)
+	s, ok := js.Get("foo", "bar").CheckString()
+	assert.Equal(t, true, ok)
 	assert.Equal(t, "baz", s)
 }
 
@@ -190,8 +190,8 @@ func TestSetPathNoPath(t *testing.T) {
 
 	js.SetPath([]string{}, map[string]interface{}{"foo": "bar"})
 
-	s, err := js.Get("foo").CheckString()
-	assert.Equal(t, nil, err)
+	s, ok := js.Get("foo").CheckString()
+	assert.Equal(t, true, ok)
 	assert.Equal(t, "bar", s)
 
 	f = js.Get("some_number").Float64(99.0)
@@ -227,8 +227,8 @@ func TestPathWillAugmentExisting(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		s, err := js.Get(tc.path...).CheckString()
-		assert.Equal(t, nil, err)
+		s, ok := js.Get(tc.path...).CheckString()
+		assert.Equal(t, true, ok)
 		assert.Equal(t, tc.outcome, s)
 	}
 }
@@ -240,8 +240,8 @@ func TestPathWillOverwriteExisting(t *testing.T) {
 
 	js.SetPath([]string{"this", "a", "foo"}, "bar")
 
-	s, err := js.Get("this", "a", "foo").CheckString()
-	assert.Equal(t, nil, err)
+	s, ok := js.Get("this", "a", "foo").CheckString()
+	assert.Equal(t, true, ok)
 	assert.Equal(t, "bar", s)
 }
 
@@ -264,7 +264,7 @@ func TestNewFromReader(t *testing.T) {
 	assert.NotEqual(t, nil, js)
 	assert.Equal(t, nil, err)
 
-	arr := js.Get("test").Get("array").Array()
+	arr := js.Get("test").Get("array").Slice()
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
@@ -279,7 +279,7 @@ func TestNewFromReader(t *testing.T) {
 		assert.Equal(t, i+1, iv)
 	}
 
-	ma := js.Get("test").Get("array").Array()
+	ma := js.Get("test").Get("array").Slice()
 	assert.Equal(t, ma, []interface{}{json.Number("1"), "2", json.Number("3")})
 
 	mm := js.Get("test").Get("arraywithsubs").Get(0).Map()
@@ -305,7 +305,7 @@ func TestSimplejsonGo11(t *testing.T) {
 	assert.NotEqual(t, nil, js)
 	assert.Equal(t, nil, err)
 
-	arr := js.Get("test").Get("array").Array()
+	arr := js.Get("test").Get("array").Slice()
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
@@ -320,7 +320,7 @@ func TestSimplejsonGo11(t *testing.T) {
 		assert.Equal(t, i+1, iv)
 	}
 
-	ma := js.Get("test").Get("array").Array()
+	ma := js.Get("test").Get("array").Slice()
 	assert.Equal(t, ma, []interface{}{json.Number("1"), "2", json.Number("3")})
 
 	mm := js.Get("test").Get("arraywithsubs").Get(0).Map()

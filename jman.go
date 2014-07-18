@@ -4,7 +4,6 @@ package jman
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"io"
 	"log"
 	"reflect"
@@ -20,8 +19,9 @@ type (
 		data interface{}
 	}
 	NodeSlice []*Node
+	DuckSlice []interface{}
 	NodeMap   map[string]*Node
-	AnyMap    map[string]interface{}
+	DuckMap   map[string]interface{}
 )
 
 var NilNode = &Node{nil}
@@ -40,7 +40,7 @@ func New(body []byte) (*Node, error) {
 // NewNode returns a pointer to a new, empty `Node` object
 func NewNode() *Node {
 	return &Node{
-		data: make(AnyMap),
+		data: make(DuckMap),
 	}
 }
 
@@ -67,8 +67,8 @@ func (j *Node) MarshalJSON() ([]byte, error) {
 // Set modifies `Node` map by `key` and `value`
 // Useful for changing single key/value in a `Node` object easily.
 func (j *Node) Set(key string, val interface{}) {
-	m, err := j.CheckMap()
-	if err != nil {
+	m, ok := j.CheckMap()
+	if !ok {
 		return
 	}
 	m[key] = val
@@ -82,31 +82,31 @@ func (j *Node) SetPath(branch []string, val interface{}) {
 		return
 	}
 
-	// in order to insert our branch, we need AnyMap
-	if _, ok := (j.data).(AnyMap); !ok {
+	// in order to insert our branch, we need DuckMap
+	if _, ok := (j.data).(DuckMap); !ok {
 		// have to replace with something suitable
-		j.data = make(AnyMap)
+		j.data = make(DuckMap)
 	}
-	curr := j.data.(AnyMap)
+	curr := j.data.(DuckMap)
 
 	for i := 0; i < len(branch)-1; i++ {
 		b := branch[i]
 		// key exists?
 		if _, ok := curr[b]; !ok {
-			n := make(AnyMap)
+			n := make(DuckMap)
 			curr[b] = n
 			curr = n
 			continue
 		}
 
 		// make sure the value is the right sort of thing
-		if _, ok := curr[b].(AnyMap); !ok {
+		if _, ok := curr[b].(DuckMap); !ok {
 			// have to replace with something suitable
-			n := make(AnyMap)
+			n := make(DuckMap)
 			curr[b] = n
 		}
 
-		curr = curr[b].(AnyMap)
+		curr = curr[b].(DuckMap)
 	}
 
 	// add remaining k/v
@@ -115,8 +115,8 @@ func (j *Node) SetPath(branch []string, val interface{}) {
 
 // Del modifies `Node` map by deleting `key` if it is present.
 func (j *Node) Del(key string) {
-	m, err := j.CheckMap()
-	if err != nil {
+	m, ok := j.CheckMap()
+	if !ok {
 		return
 	}
 	delete(m, key)
@@ -126,8 +126,8 @@ func (j *Node) Del(key string) {
 // for `key` in its `map` representation
 // and a bool identifying success or failure
 func (j *Node) GetKey(key string) (*Node, bool) {
-	m, err := j.CheckMap()
-	if err == nil {
+	m, ok := j.CheckMap()
+	if ok {
 		if val, ok := m[key]; ok {
 			return &Node{val}, true
 		}
@@ -139,8 +139,8 @@ func (j *Node) GetKey(key string) (*Node, bool) {
 // for `index` in its `array` representation
 // and a bool identifying success or failure
 func (j *Node) GetIndex(index int) (*Node, bool) {
-	a, err := j.CheckArray()
-	if err == nil {
+	a, ok := j.CheckSlice()
+	if ok {
 		if len(a) > index {
 			return &Node{a[index]}, true
 		}
@@ -186,62 +186,62 @@ func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
 	return jin, true
 }
 
-// CheckNodeMap returns a copy of a Json map, but with values as Nodes
-func (j *Node) CheckNodeMap() (NodeMap, error) {
-	m, err := j.CheckMap()
-	if err != nil {
-		return nil, err
+// ChechNodeMap returns a copy of a Json map, but with values as Jsons
+func (j *Node) CheckNodeMap() (NodeMap, bool) {
+	m, ok := j.CheckMap()
+	if !ok {
+		return nil, false
 	}
 	jm := make(NodeMap)
 	for key, val := range m {
 		jm[key] = &Node{val}
 	}
-	return jm, nil
+	return jm, true
 }
 
 // CheckNodeSlice returns a copy of an array, but with each value as a Json
-func (j *Node) CheckNodeSlice() (NodeSlice, error) {
-	a, err := j.CheckArray()
-	if err != nil {
-		return nil, err
+func (j *Node) CheckNodeSlice() ([]*Node, bool) {
+	a, ok := j.CheckSlice()
+	if !ok {
+		return nil, false
 	}
 	ja := make([]*Node, len(a))
 	for key, val := range a {
 		ja[key] = &Node{val}
 	}
-	return ja, nil
+	return ja, true
 }
 
 // CheckMap type asserts to `map`
-func (j *Node) CheckMap() (AnyMap, error) {
-	if m, ok := (j.data).(AnyMap); ok {
-		return m, nil
+func (j *Node) CheckMap() (DuckMap, bool) {
+	if m, ok := (j.data).(DuckMap); ok {
+		return m, true
 	}
-	return nil, errors.New("type assertion to map[string]interface{} failed")
+	return nil, false
 }
 
-// CheckArray type asserts to an `array`
-func (j *Node) CheckArray() ([]interface{}, error) {
-	if a, ok := (j.data).([]interface{}); ok {
-		return a, nil
+// CheckSlice type asserts to an `array`
+func (j *Node) CheckSlice() (DuckSlice, bool) {
+	if a, ok := (j.data).(DuckSlice); ok {
+		return a, true
 	}
-	return nil, errors.New("type assertion to []interface{} failed")
+	return nil, false
 }
 
 // CheckBool type asserts to `bool`
-func (j *Node) CheckBool() (bool, error) {
+func (j *Node) CheckBool() (bool, bool) {
 	if s, ok := (j.data).(bool); ok {
-		return s, nil
+		return s, true
 	}
-	return false, errors.New("type assertion to bool failed")
+	return false, false
 }
 
 // CheckString type asserts to `string`
-func (j *Node) CheckString() (string, error) {
+func (j *Node) CheckString() (string, bool) {
 	if s, ok := (j.data).(string); ok {
-		return s, nil
+		return s, true
 	}
-	return "", errors.New("type assertion to string failed")
+	return "", false
 }
 
 // NodeSlice guarantees the return of a `[]interface{}` (with optional default)
@@ -256,8 +256,8 @@ func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
 		log.Panicf("NodeSlice() received too many arguments %d", len(args))
 	}
 
-	a, err := j.CheckNodeSlice()
-	if err == nil {
+	a, ok := j.CheckNodeSlice()
+	if ok {
 		return a
 	}
 
@@ -276,21 +276,20 @@ func (j *Node) NodeMap(args ...NodeMap) NodeMap {
 		log.Panicf("NodeMap() received too many arguments %d", len(args))
 	}
 
-	a, err := j.CheckNodeMap()
-	if err == nil {
+	if a, ok := j.CheckNodeMap(); ok {
 		return a
 	}
 
 	return def
 }
 
-// Array guarantees the return of a `[]interface{}` (with optional default)
+// Slice guarantees the return of a `[]interface{}` (with optional default)
 //
 // useful when you want to interate over array values in a succinct manner:
-//		for i, v := range js.Get("results").Array() {
+//		for i, v := range js.Get("results").Slice() {
 //			fmt.Println(i, v)
 //		}
-func (j *Node) Array(args ...[]interface{}) []interface{} {
+func (j *Node) Slice(args ...[]interface{}) []interface{} {
 	var def []interface{}
 
 	switch len(args) {
@@ -298,11 +297,11 @@ func (j *Node) Array(args ...[]interface{}) []interface{} {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("Array() received too many arguments %d", len(args))
+		log.Panicf("Slice() received too many arguments %d", len(args))
 	}
 
-	a, err := j.CheckArray()
-	if err == nil {
+	a, ok := j.CheckSlice()
+	if ok {
 		return a
 	}
 
@@ -315,8 +314,8 @@ func (j *Node) Array(args ...[]interface{}) []interface{} {
 //		for k, v := range js.Get("dictionary").Map() {
 //			fmt.Println(k, v)
 //		}
-func (j *Node) Map(args ...AnyMap) AnyMap {
-	var def AnyMap
+func (j *Node) Map(args ...DuckMap) DuckMap {
+	var def DuckMap
 
 	switch len(args) {
 	case 0:
@@ -326,8 +325,8 @@ func (j *Node) Map(args ...AnyMap) AnyMap {
 		log.Panicf("Map() received too many arguments %d", len(args))
 	}
 
-	a, err := j.CheckMap()
-	if err == nil {
+	a, ok := j.CheckMap()
+	if ok {
 		return a
 	}
 
@@ -349,8 +348,8 @@ func (j *Node) String(args ...string) string {
 		log.Panicf("String() received too many arguments %d", len(args))
 	}
 
-	s, err := j.CheckString()
-	if err == nil {
+	s, ok := j.CheckString()
+	if ok {
 		return s
 	}
 
@@ -372,8 +371,8 @@ func (j *Node) Int(args ...int) int {
 		log.Panicf("Int() received too many arguments %d", len(args))
 	}
 
-	i, err := j.CheckInt()
-	if err == nil {
+	i, ok := j.CheckInt()
+	if ok {
 		return i
 	}
 
@@ -395,8 +394,8 @@ func (j *Node) Float64(args ...float64) float64 {
 		log.Panicf("Float64() received too many arguments %d", len(args))
 	}
 
-	f, err := j.CheckFloat64()
-	if err == nil {
+	f, ok := j.CheckFloat64()
+	if ok {
 		return f
 	}
 
@@ -418,8 +417,8 @@ func (j *Node) Bool(args ...bool) bool {
 		log.Panicf("Bool() received too many arguments %d", len(args))
 	}
 
-	b, err := j.CheckBool()
-	if err == nil {
+	b, ok := j.CheckBool()
+	if ok {
 		return b
 	}
 
@@ -441,8 +440,8 @@ func (j *Node) Int64(args ...int64) int64 {
 		log.Panicf("Int64() received too many arguments %d", len(args))
 	}
 
-	i, err := j.CheckInt64()
-	if err == nil {
+	i, ok := j.CheckInt64()
+	if ok {
 		return i
 	}
 
@@ -464,8 +463,8 @@ func (j *Node) Uint64(args ...uint64) uint64 {
 		log.Panicf("Uint64() received too many arguments %d", len(args))
 	}
 
-	i, err := j.CheckUint64()
-	if err == nil {
+	i, ok := j.CheckUint64()
+	if ok {
 		return i
 	}
 
@@ -488,63 +487,66 @@ func NewFromReader(r io.Reader) (*Node, error) {
 	return j, err
 }
 
-// Float64 coerces into a float64
-func (j *Node) CheckFloat64() (float64, error) {
+// CheckFloat64 coerces into a float64
+func (j *Node) CheckFloat64() (float64, bool) {
 	switch j.data.(type) {
 	case json.Number:
-		return j.data.(json.Number).Float64()
+		nr, err := j.data.(json.Number).Float64()
+		return nr, err == nil
 	case float32, float64:
-		return reflect.ValueOf(j.data).Float(), nil
+		return reflect.ValueOf(j.data).Float(), true
 	case int, int8, int16, int32, int64:
-		return float64(reflect.ValueOf(j.data).Int()), nil
+		return float64(reflect.ValueOf(j.data).Int()), true
 	case uint, uint8, uint16, uint32, uint64:
-		return float64(reflect.ValueOf(j.data).Uint()), nil
+		return float64(reflect.ValueOf(j.data).Uint()), true
 	}
-	return 0, errors.New("invalid value type")
+	return 0, false
 }
 
-// Int coerces into an int
-func (j *Node) CheckInt() (int, error) {
+// CheckInt coerces into an int
+func (j *Node) CheckInt() (int, bool) {
 	switch j.data.(type) {
 	case json.Number:
-		i, err := j.data.(json.Number).Int64()
-		return int(i), err
+		nr, err := j.data.(json.Number).Int64()
+		return int(nr), err == nil
 	case float32, float64:
-		return int(reflect.ValueOf(j.data).Float()), nil
+		return int(reflect.ValueOf(j.data).Float()), true
 	case int, int8, int16, int32, int64:
-		return int(reflect.ValueOf(j.data).Int()), nil
+		return int(reflect.ValueOf(j.data).Int()), true
 	case uint, uint8, uint16, uint32, uint64:
-		return int(reflect.ValueOf(j.data).Uint()), nil
+		return int(reflect.ValueOf(j.data).Uint()), true
 	}
-	return 0, errors.New("invalid value type")
+	return 0, false
 }
 
-// Int64 coerces into an int64
-func (j *Node) CheckInt64() (int64, error) {
+// CheckInt64 coerces into an int64
+func (j *Node) CheckInt64() (int64, bool) {
 	switch j.data.(type) {
 	case json.Number:
-		return j.data.(json.Number).Int64()
+		nr, err := j.data.(json.Number).Int64()
+		return nr, err == nil
 	case float32, float64:
-		return int64(reflect.ValueOf(j.data).Float()), nil
+		return int64(reflect.ValueOf(j.data).Float()), true
 	case int, int8, int16, int32, int64:
-		return reflect.ValueOf(j.data).Int(), nil
+		return reflect.ValueOf(j.data).Int(), true
 	case uint, uint8, uint16, uint32, uint64:
-		return int64(reflect.ValueOf(j.data).Uint()), nil
+		return int64(reflect.ValueOf(j.data).Uint()), true
 	}
-	return 0, errors.New("invalid value type")
+	return 0, false
 }
 
-// Uint64 coerces into an uint64
-func (j *Node) CheckUint64() (uint64, error) {
+// CheckUint64 coerces into an uint64
+func (j *Node) CheckUint64() (uint64, bool) {
 	switch j.data.(type) {
 	case json.Number:
-		return strconv.ParseUint(j.data.(json.Number).String(), 10, 64)
+		nr, err := strconv.ParseUint(j.data.(json.Number).String(), 10, 64)
+		return nr, err == nil
 	case float32, float64:
-		return uint64(reflect.ValueOf(j.data).Float()), nil
+		return uint64(reflect.ValueOf(j.data).Float()), true
 	case int, int8, int16, int32, int64:
-		return uint64(reflect.ValueOf(j.data).Int()), nil
+		return uint64(reflect.ValueOf(j.data).Int()), true
 	case uint, uint8, uint16, uint32, uint64:
-		return reflect.ValueOf(j.data).Uint(), nil
+		return reflect.ValueOf(j.data).Uint(), true
 	}
-	return 0, errors.New("invalid value type")
+	return 0, false
 }
