@@ -244,14 +244,6 @@ func (j *Node) CheckString() (string, error) {
 	return "", errors.New("type assertion to string failed")
 }
 
-// CheckBytes type asserts to `[]byte`
-func (j *Node) CheckBytes() ([]byte, error) {
-	if s, ok := (j.data).(string); ok {
-		return []byte(s), nil
-	}
-	return nil, errors.New("type assertion to []byte failed")
-}
-
 // NodeSlice guarantees the return of a `[]interface{}` (with optional default)
 func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
 	var def NodeSlice
@@ -272,7 +264,7 @@ func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
 	return def
 }
 
-// NodeMap guarantees the return of a `map[string]interface{}` (with optional default)
+// NodeMap guarantees the return of a `map[string]*Node` (with optional default)
 func (j *Node) NodeMap(args ...NodeMap) NodeMap {
 	var def NodeMap
 
