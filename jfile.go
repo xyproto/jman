@@ -191,6 +191,11 @@ func (jf *JFile) AddJSON(JSONpath, JSONdata string) error {
 	return jf.Write(newFullJSON)
 }
 
+// GetAll returns the current JSON data
+func (jf *JFile) GetAll() ([]byte, error) {
+	return jf.rootnode.EncodePretty()
+}
+
 // SetString sets a value to the given JSON file at the given JSON path
 func SetString(filename, JSONpath, value string) error {
 	jf, err := NewFile(filename)
