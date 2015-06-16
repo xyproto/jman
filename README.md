@@ -1,4 +1,4 @@
-#SimpleJSON2 [![Build Status](https://travis-ci.org/xyproto/simplejson2.svg?branch=master)](https://travis-ci.org/xyproto/simplejson2) [![Build Status](https://drone.io/github.com/xyproto/simplejson2/status.png)](https://drone.io/github.com/xyproto/simplejson2/latest) [![GoDoc](https://godoc.org/github.com/xyproto/simplejson2?status.svg)](http://godoc.org/github.com/xyproto/simplejson2)
+#SimpleJSON2 [![Build Status](https://travis-ci.org/xyproto/simplejson2.svg?branch=master)](https://travis-ci.org/xyproto/simplejson2) [![GoDoc](https://godoc.org/github.com/xyproto/simplejson2?status.svg)](http://godoc.org/github.com/xyproto/simplejson2)
 
 Interact with arbitrary JSON.
 
