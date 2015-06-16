@@ -1,3 +1,4 @@
+// Package simplejson provides a way to search and manipulate JSON documents
 package simplejson
 
 import (
@@ -18,7 +19,7 @@ type Node struct {
 	data interface{}
 }
 
-// NewJSON returns a pointer to a new `JSON` object
+// NewJSON returns a pointer to a new `Node` object
 // after unmarshaling `body` bytes
 func NewJSON(body []byte) (*Node, error) {
 	j := new(Node)
@@ -29,7 +30,7 @@ func NewJSON(body []byte) (*Node, error) {
 	return j, nil
 }
 
-// New returns a pointer to a new, empty `JSON` object
+// New returns a pointer to a new, empty `Node` object
 func New() *Node {
 	return &Node{
 		data: make(map[string]interface{}),
@@ -56,8 +57,8 @@ func (j *Node) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&j.data)
 }
 
-// Set modifies `JSON` map by `key` and `value`.
-// Useful for changing single key/value in a `JSON` object easily.
+// Set modifies `Node` map by `key` and `value`.
+// Useful for changing single key/value in a `Node` object easily.
 func (j *Node) Set(key string, val interface{}) {
 	m, err := j.Map()
 	if err != nil {
@@ -66,7 +67,7 @@ func (j *Node) Set(key string, val interface{}) {
 	m[key] = val
 }
 
-// SetPath modifies `JSON`, recursively checking/creating map keys for the supplied path,
+// SetPath modifies `Node`, recursively checking/creating map keys for the supplied path,
 // and then finally writing in the value.
 func (j *Node) SetPath(branch []string, val interface{}) {
 	if len(branch) == 0 {
@@ -105,7 +106,7 @@ func (j *Node) SetPath(branch []string, val interface{}) {
 	curr[branch[len(branch)-1]] = val
 }
 
-// Del modifies `JSON` map by deleting `key` if it is present.
+// Del modifies `Node` map by deleting `key` if it is present.
 func (j *Node) Del(key string) {
 	m, err := j.Map()
 	if err != nil {
@@ -114,7 +115,7 @@ func (j *Node) Del(key string) {
 	delete(m, key)
 }
 
-// Get returns a pointer to a new `JSON` object
+// Get returns a pointer to a new `Node` object
 // for `key` in its `map` representation
 //
 // useful for chaining operations (to traverse a nested JSON):
@@ -141,7 +142,7 @@ func (j *Node) GetPath(branch ...string) *Node {
 	return jin
 }
 
-// GetIndex returns a pointer to a new `JSON` object
+// GetIndex returns a pointer to a new `Node` object
 // for `index` in its `array` representation
 //
 // this is the analog to Get when accessing elements of
@@ -157,7 +158,7 @@ func (j *Node) GetIndex(index int) *Node {
 	return &Node{nil}
 }
 
-// CheckGet returns a pointer to a new `JSON` object and
+// CheckGet returns a pointer to a new `Node` object and
 // a `bool` identifying success or failure
 //
 // useful for chained operations when success is important:
