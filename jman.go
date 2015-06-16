@@ -11,17 +11,18 @@ import (
 // Stable API within the same major version number
 const Version = 1.0
 
-// Node can be a JSON document, or a part of a JSON document
 type (
+	// Node is a JSON document, or a part of a JSON document
 	Node struct {
 		data interface{}
 	}
-	NodeSlice []*Node
-	DuckSlice []interface{}
-	NodeMap   map[string]*Node
-	DuckMap   map[string]interface{}
+	// NodeList is a list of nodes
+	NodeList []*Node
+	// NodeMap is a map of nodes
+	NodeMap map[string]*Node
 )
 
+// NilNode is an empty node. Used when not finding nodes with Get.
 var NilNode = &Node{nil}
 
 // New returns a pointer to a new `Node` object
@@ -38,7 +39,7 @@ func New(body []byte) (*Node, error) {
 // NewNode returns a pointer to a new, empty `Node` object
 func NewNode() *Node {
 	return &Node{
-		data: make(DuckMap),
+		data: make(map[string]interface{}),
 	}
 }
 
@@ -80,31 +81,31 @@ func (j *Node) SetPath(branch []string, val interface{}) {
 		return
 	}
 
-	// in order to insert our branch, we need DuckMap
-	if _, ok := (j.data).(DuckMap); !ok {
+	// in order to insert our branch, we need map[string]interface{}
+	if _, ok := (j.data).(map[string]interface{}); !ok {
 		// have to replace with something suitable
-		j.data = make(DuckMap)
+		j.data = make(map[string]interface{})
 	}
-	curr := j.data.(DuckMap)
+	curr := j.data.(map[string]interface{})
 
 	for i := 0; i < len(branch)-1; i++ {
 		b := branch[i]
 		// key exists?
 		if _, ok := curr[b]; !ok {
-			n := make(DuckMap)
+			n := make(map[string]interface{})
 			curr[b] = n
 			curr = n
 			continue
 		}
 
 		// make sure the value is the right sort of thing
-		if _, ok := curr[b].(DuckMap); !ok {
+		if _, ok := curr[b].(map[string]interface{}); !ok {
 			// have to replace with something suitable
-			n := make(DuckMap)
+			n := make(map[string]interface{})
 			curr[b] = n
 		}
 
-		curr = curr[b].(DuckMap)
+		curr = curr[b].(map[string]interface{})
 	}
 
 	// add remaining k/v
@@ -183,7 +184,7 @@ func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
 	return jin, true
 }
 
-// ChechNodeMap returns a copy of a Node map, but with values as Nodes
+// CheckNodeMap returns a copy of a Node map, but with values as Nodes
 func (j *Node) CheckNodeMap() (NodeMap, bool) {
 	m, ok := j.CheckMap()
 	if !ok {
@@ -196,8 +197,8 @@ func (j *Node) CheckNodeMap() (NodeMap, bool) {
 	return jm, true
 }
 
-// CheckNodeSlice returns a copy of a slice, but with each value as a Node
-func (j *Node) CheckNodeSlice() ([]*Node, bool) {
+// CheckNodeList returns a copy of a slice, but with each value as a Node
+func (j *Node) CheckNodeList() ([]*Node, bool) {
 	a, ok := j.CheckSlice()
 	if !ok {
 		return nil, false
@@ -210,16 +211,16 @@ func (j *Node) CheckNodeSlice() ([]*Node, bool) {
 }
 
 // CheckMap type asserts to `map`
-func (j *Node) CheckMap() (DuckMap, bool) {
-	if m, ok := (j.data).(DuckMap); ok {
+func (j *Node) CheckMap() (map[string]interface{}, bool) {
+	if m, ok := (j.data).(map[string]interface{}); ok {
 		return m, true
 	}
 	return nil, false
 }
 
 // CheckSlice type asserts to an `array`
-func (j *Node) CheckSlice() (DuckSlice, bool) {
-	if a, ok := (j.data).(DuckSlice); ok {
+func (j *Node) CheckSlice() ([]interface{}, bool) {
+	if a, ok := (j.data).([]interface{}); ok {
 		return a, true
 	}
 	return nil, false
@@ -241,19 +242,19 @@ func (j *Node) CheckString() (string, bool) {
 	return "", false
 }
 
-// NodeSlice guarantees the return of a `[]*Node` (with optional default)
-func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
-	var def NodeSlice
+// NodeList guarantees the return of a `[]*Node` (with optional default)
+func (j *Node) NodeList(args ...NodeList) NodeList {
+	var def NodeList
 
 	switch len(args) {
 	case 0:
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("NodeSlice() received too many arguments %d", len(args))
+		log.Panicf("NodeList() received too many arguments %d", len(args))
 	}
 
-	if a, ok := j.CheckNodeSlice(); ok {
+	if a, ok := j.CheckNodeList(); ok {
 		return a
 	}
 
@@ -309,8 +310,8 @@ func (j *Node) Slice(args ...[]interface{}) []interface{} {
 //		for k, v := range js.Get("dictionary").Map() {
 //			fmt.Println(k, v)
 //		}
-func (j *Node) Map(args ...DuckMap) DuckMap {
-	var def DuckMap
+func (j *Node) Map(args ...map[string]interface{}) map[string]interface{} {
+	var def map[string]interface{}
 
 	switch len(args) {
 	case 0:
@@ -474,7 +475,7 @@ func NewFromReader(r io.Reader) (*Node, error) {
 	return j, err
 }
 
-// Implements the json.Unmarshaler interface.
+// UnmarshalJSON implements the json.Unmarshaler interface
 func (j *Node) UnmarshalJSON(p []byte) error {
 	return json.Unmarshal(p, &j.data)
 }

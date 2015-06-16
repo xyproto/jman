@@ -93,7 +93,7 @@ func TestSimplejson(t *testing.T) {
 	jmbool, _ := jm["bool"].CheckBool()
 	assert.Equal(t, true, jmbool)
 
-	ja, ok := js.Get("test", "string_array").CheckNodeSlice()
+	ja, ok := js.Get("test", "string_array").CheckNodeList()
 	assert.Equal(t, ok, true)
 	jastr, _ := ja[0].CheckString()
 	assert.Equal(t, "asdf", jastr)
@@ -118,7 +118,7 @@ func TestSimplejson(t *testing.T) {
 	jmm := js.Get("missing_map").NodeMap(NodeMap{"js1": js})
 	assert.Equal(t, js, jmm["js1"])
 
-	jma := js.Get("missing_array").NodeSlice(NodeSlice{js})
+	jma := js.Get("missing_array").NodeList(NodeList{js})
 	assert.Equal(t, js, jma[0])
 }
 
