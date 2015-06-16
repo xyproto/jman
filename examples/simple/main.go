@@ -17,10 +17,7 @@ func main() {
 	}
 
 	// Retrieve the value of "a", as an int
-	val, err := js.Get("a").Int()
-	if err != nil {
-		log.Fatal(err)
-	}
+	val := js.Get("a").Int()
 
 	// Output the result
 	fmt.Println("a is", val)
