@@ -170,25 +170,25 @@ func TestReplace(t *testing.T) {
 	assert.Equal(t, "bing", s)
 }
 
-func TestSetPath(t *testing.T) {
+func TestSetBranch(t *testing.T) {
 	js, err := New([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
-	js.SetPath([]string{"foo", "bar"}, "baz")
+	js.SetBranch([]string{"foo", "bar"}, "baz")
 
 	s, ok := js.Get("foo", "bar").CheckString()
 	assert.Equal(t, true, ok)
 	assert.Equal(t, "baz", s)
 }
 
-func TestSetPathNoPath(t *testing.T) {
+func TestSetBranchNoPath(t *testing.T) {
 	js, err := New([]byte(`{"some":"data","some_number":1.0,"some_bool":false}`))
 	assert.Equal(t, nil, err)
 
 	f := js.Get("some_number").Float64(99.0)
 	assert.Equal(t, f, 1.0)
 
-	js.SetPath([]string{}, map[string]interface{}{"foo": "bar"})
+	js.SetBranch([]string{}, map[string]interface{}{"foo": "bar"})
 
 	s, ok := js.Get("foo").CheckString()
 	assert.Equal(t, true, ok)
@@ -202,7 +202,7 @@ func TestPathWillAugmentExisting(t *testing.T) {
 	js, err := New([]byte(`{"this":{"a":"aa","b":"bb","c":"cc"}}`))
 	assert.Equal(t, nil, err)
 
-	js.SetPath([]string{"this", "d"}, "dd")
+	js.SetBranch([]string{"this", "d"}, "dd")
 
 	cases := []struct {
 		path    []interface{}
@@ -238,7 +238,7 @@ func TestPathWillOverwriteExisting(t *testing.T) {
 	js, err := New([]byte(`{"this":{"a":0.1,"b":"bb","c":"cc"}}`))
 	assert.Equal(t, nil, err)
 
-	js.SetPath([]string{"this", "a", "foo"}, "bar")
+	js.SetBranch([]string{"this", "a", "foo"}, "bar")
 
 	s, ok := js.Get("this", "a", "foo").CheckString()
 	assert.Equal(t, true, ok)
