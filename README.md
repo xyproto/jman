@@ -1,4 +1,4 @@
-#JSON manager [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
+#Simple JSON manager [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
 
 Interact with arbitrary JSON.
 
@@ -17,7 +17,7 @@ func main() {
 	// Some JSON
 	data := []byte(`{"a":2, "b":3}`)
 
-	// Create a new *simplejson.JSON struct
+	// Create a new *jman.Node
 	js, err := jman.New(data)
 	if err != nil {
 		log.Fatal(err)

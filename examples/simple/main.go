@@ -10,7 +10,7 @@ func main() {
 	// Some JSON
 	data := []byte(`{"a":2, "b":3}`)
 
-	// Create a new *simplejson.JSON struct
+	// Create a new *jman.Node
 	js, err := jman.New(data)
 	if err != nil {
 		log.Fatal(err)
