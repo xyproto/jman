@@ -73,9 +73,9 @@ func (j *Node) Set(key string, val interface{}) {
 	m[key] = val
 }
 
-// SetPath modifies `Node`, recursively checking/creating map keys for the supplied path,
+// SetBranch modifies `Node`, recursively checking/creating map keys for the supplied path,
 // and then finally writing in the value.
-func (j *Node) SetPath(branch []string, val interface{}) {
+func (j *Node) SetBranch(branch []string, val interface{}) {
 	if len(branch) == 0 {
 		j.data = val
 		return

@@ -30,3 +30,13 @@ func main() {
 	fmt.Println("a is", val)
 }
 ~~~
+
+### JSON paths
+
+Several of the JFile methods takes a simple JSON path expression, like `x.books[1].author`. Only simple expressions using `x` for the root node, names and integer indexes are supported. For more advanced JSON path expressions, see [this blog post](http://goessner.net/articles/JsonPath/).
+
+The `SetBranch` method for the `Node` struct also provides a way of accessing JSON nodes, where the JSON names are supplied as a slice of strings.
+
+### Requirements
+
+* go >= 1.2
