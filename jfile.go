@@ -183,6 +183,9 @@ func (jf *JFile) AddJSON(JSONpath, JSONdata string) error {
 		return err
 	}
 
+	// Update the root node
+	jf.rootnode = js
+
 	newFullJSON, err = js.EncodePretty()
 	if err != nil {
 		return err
