@@ -2,12 +2,10 @@
 package jman
 
 import (
-	"bytes"
 	"encoding/json"
 	"io"
 	"log"
 	"reflect"
-	"strconv"
 )
 
 // Stable API within the same major version number
@@ -468,28 +466,22 @@ func (j *Node) Uint64(args ...uint64) uint64 {
 	return def
 }
 
-// UnmarshalJSON implements the json.Unmarshaler interface
-func (j *Node) UnmarshalJSON(p []byte) error {
-	dec := json.NewDecoder(bytes.NewBuffer(p))
-	dec.UseNumber()
-	return dec.Decode(&j.data)
-}
-
 // NewFromReader returns a *Node by decoding from an io.Reader
 func NewFromReader(r io.Reader) (*Node, error) {
 	j := new(Node)
 	dec := json.NewDecoder(r)
-	dec.UseNumber()
 	err := dec.Decode(&j.data)
 	return j, err
+}
+
+// Implements the json.Unmarshaler interface.
+func (j *Node) UnmarshalJSON(p []byte) error {
+	return json.Unmarshal(p, &j.data)
 }
 
 // CheckFloat64 coerces into a float64
 func (j *Node) CheckFloat64() (float64, bool) {
 	switch j.data.(type) {
-	case json.Number:
-		nr, err := j.data.(json.Number).Float64()
-		return nr, err == nil
 	case float32, float64:
 		return reflect.ValueOf(j.data).Float(), true
 	case int, int8, int16, int32, int64:
@@ -503,9 +495,6 @@ func (j *Node) CheckFloat64() (float64, bool) {
 // CheckInt coerces into an int
 func (j *Node) CheckInt() (int, bool) {
 	switch j.data.(type) {
-	case json.Number:
-		nr, err := j.data.(json.Number).Int64()
-		return int(nr), err == nil
 	case float32, float64:
 		return int(reflect.ValueOf(j.data).Float()), true
 	case int, int8, int16, int32, int64:
@@ -519,9 +508,6 @@ func (j *Node) CheckInt() (int, bool) {
 // CheckInt64 coerces into an int64
 func (j *Node) CheckInt64() (int64, bool) {
 	switch j.data.(type) {
-	case json.Number:
-		nr, err := j.data.(json.Number).Int64()
-		return nr, err == nil
 	case float32, float64:
 		return int64(reflect.ValueOf(j.data).Float()), true
 	case int, int8, int16, int32, int64:
@@ -535,9 +521,6 @@ func (j *Node) CheckInt64() (int64, bool) {
 // CheckUint64 coerces into an uint64
 func (j *Node) CheckUint64() (uint64, bool) {
 	switch j.data.(type) {
-	case json.Number:
-		nr, err := strconv.ParseUint(j.data.(json.Number).String(), 10, 64)
-		return nr, err == nil
 	case float32, float64:
 		return uint64(reflect.ValueOf(j.data).Float()), true
 	case int, int8, int16, int32, int64:

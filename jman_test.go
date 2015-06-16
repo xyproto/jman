@@ -246,7 +246,6 @@ func TestPathWillOverwriteExisting(t *testing.T) {
 }
 
 func TestNewFromReader(t *testing.T) {
-	//Use New Constructor
 	buf := bytes.NewBuffer([]byte(`{
 		"test": {
 			"array": [1, "2", 3],
@@ -254,8 +253,7 @@ func TestNewFromReader(t *testing.T) {
 				{"subkeyone": 1},
 				{"subkeytwo": 2, "subkeythree": 3}
 			],
-			"bignum": 9223372036854775807,
-			"uint64": 18446744073709551615
+			"bignum": 8000000000
 		}
 	}`))
 	js, err := NewFromReader(buf)
@@ -269,10 +267,8 @@ func TestNewFromReader(t *testing.T) {
 	for i, v := range arr {
 		var iv int
 		switch v.(type) {
-		case json.Number:
-			i64, err := v.(json.Number).Int64()
-			assert.Equal(t, nil, err)
-			iv = int(i64)
+		case float64:
+			iv = int(v.(float64))
 		case string:
 			iv, _ = strconv.Atoi(v.(string))
 		}
@@ -280,16 +276,15 @@ func TestNewFromReader(t *testing.T) {
 	}
 
 	ma := js.Get("test").Get("array").Slice()
-	assert.Equal(t, ma, []interface{}{json.Number("1"), "2", json.Number("3")})
+	assert.Equal(t, ma, []interface{}{float64(1), "2", float64(3)})
 
 	mm := js.Get("test").Get("arraywithsubs").Get(0).Map()
-	assert.Equal(t, mm, map[string]interface{}{"subkeyone": json.Number("1")})
+	assert.Equal(t, mm, map[string]interface{}{"subkeyone": float64(1)})
 
-	assert.Equal(t, js.Get("test").Get("bignum").Int64(), int64(9223372036854775807))
-	assert.Equal(t, js.Get("test").Get("uint64").Uint64(), uint64(18446744073709551615))
+	assert.Equal(t, js.Get("test").Get("bignum").Int64(), int64(8000000000))
 }
 
-func TestSimplejsonGo11(t *testing.T) {
+func TestSimplejson2(t *testing.T) {
 	js, err := New([]byte(`{
 		"test": {
 			"array": [1, "2", 3],
@@ -297,8 +292,7 @@ func TestSimplejsonGo11(t *testing.T) {
 				{"subkeyone": 1},
 				{"subkeytwo": 2, "subkeythree": 3}
 			],
-			"bignum": 9223372036854775807,
-			"uint64": 18446744073709551615
+			"bignum": 8000000000
 		}
 	}`))
 
@@ -310,10 +304,8 @@ func TestSimplejsonGo11(t *testing.T) {
 	for i, v := range arr {
 		var iv int
 		switch v.(type) {
-		case json.Number:
-			i64, err := v.(json.Number).Int64()
-			assert.Equal(t, nil, err)
-			iv = int(i64)
+		case float64:
+			iv = int(v.(float64))
 		case string:
 			iv, _ = strconv.Atoi(v.(string))
 		}
@@ -321,11 +313,10 @@ func TestSimplejsonGo11(t *testing.T) {
 	}
 
 	ma := js.Get("test").Get("array").Slice()
-	assert.Equal(t, ma, []interface{}{json.Number("1"), "2", json.Number("3")})
+	assert.Equal(t, ma, []interface{}{float64(1), "2", float64(3)})
 
 	mm := js.Get("test").Get("arraywithsubs").Get(0).Map()
-	assert.Equal(t, mm, map[string]interface{}{"subkeyone": json.Number("1")})
+	assert.Equal(t, mm, map[string]interface{}{"subkeyone": float64(1)})
 
-	assert.Equal(t, js.Get("test").Get("bignum").Int64(), int64(9223372036854775807))
-	assert.Equal(t, js.Get("test").Get("uint64").Uint64(), uint64(18446744073709551615))
+	assert.Equal(t, js.Get("test").Get("bignum").Int64(), int64(8000000000))
 }
