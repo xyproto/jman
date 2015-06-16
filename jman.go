@@ -15,9 +15,14 @@ import (
 const Version = 1.0
 
 // Node can be a JSON document, or a part of a JSON document
-type Node struct {
-	data interface{}
-}
+type (
+	Node struct {
+		data interface{}
+	}
+	NodeSlice []*Node
+	NodeMap   map[string]*Node
+	AnyMap    map[string]interface{}
+)
 
 // New returns a pointer to a new `Node` object
 // after unmarshaling `body` bytes
@@ -33,7 +38,7 @@ func New(body []byte) (*Node, error) {
 // NewNode returns a pointer to a new, empty `Node` object
 func NewNode() *Node {
 	return &Node{
-		data: make(map[string]interface{}),
+		data: make(AnyMap),
 	}
 }
 
@@ -75,31 +80,31 @@ func (j *Node) SetPath(branch []string, val interface{}) {
 		return
 	}
 
-	// in order to insert our branch, we need map[string]interface{}
-	if _, ok := (j.data).(map[string]interface{}); !ok {
+	// in order to insert our branch, we need AnyMap
+	if _, ok := (j.data).(AnyMap); !ok {
 		// have to replace with something suitable
-		j.data = make(map[string]interface{})
+		j.data = make(AnyMap)
 	}
-	curr := j.data.(map[string]interface{})
+	curr := j.data.(AnyMap)
 
 	for i := 0; i < len(branch)-1; i++ {
 		b := branch[i]
 		// key exists?
 		if _, ok := curr[b]; !ok {
-			n := make(map[string]interface{})
+			n := make(AnyMap)
 			curr[b] = n
 			curr = n
 			continue
 		}
 
 		// make sure the value is the right sort of thing
-		if _, ok := curr[b].(map[string]interface{}); !ok {
+		if _, ok := curr[b].(AnyMap); !ok {
 			// have to replace with something suitable
-			n := make(map[string]interface{})
+			n := make(AnyMap)
 			curr[b] = n
 		}
 
-		curr = curr[b].(map[string]interface{})
+		curr = curr[b].(AnyMap)
 	}
 
 	// add remaining k/v
@@ -115,76 +120,10 @@ func (j *Node) Del(key string) {
 	delete(m, key)
 }
 
-// Get returns a pointer to a new `Node` object
+// GetKey returns a pointer to a new `Node` object
 // for `key` in its `map` representation
-//
-// useful for chaining operations (to traverse a nested JSON):
-//    js.Get("top_level").Get("dict").Get("value").Int()
-func (j *Node) Get(key string) *Node {
-	m, err := j.Map()
-	if err == nil {
-		if val, ok := m[key]; ok {
-			return &Node{val}
-		}
-	}
-	return &Node{nil}
-}
-
-// GetPath searches for the item as specified by the branch
-// without the need to deep dive using Get()'s.
-//
-//   js.GetPath("top_level", "dict")
-func (j *Node) GetPath(branch ...string) *Node {
-	jin := j
-	for _, p := range branch {
-		jin = jin.Get(p)
-	}
-	return jin
-}
-
-// GetIndex returns a pointer to a new `Node` object
-// for `index` in its `array` representation
-//
-// this is the analog to Get when accessing elements of
-// a json array instead of a json object:
-//    js.Get("top_level").Get("array").GetIndex(1).Get("key").Int()
-func (j *Node) GetIndex(index int) *Node {
-	a, err := j.Array()
-	if err == nil {
-		if len(a) > index {
-			return &Node{a[index]}
-		}
-	}
-	return &Node{nil}
-}
-
-// GetPathAny is like GetPath, except it can also go through arrays
-// using GetIndex().
-//
-//   js.GetPathAny("top_level", "entries", 3, "dict")
-func (j *Node) GetPathAny(branch ...interface{}) *Node {
-	jin := j
-	for _, p := range branch {
-		switch p.(type) {
-		case string:
-			jin = jin.Get(p.(string))
-		case int:
-			jin = jin.GetIndex(p.(int))
-		default:
-			jin = &Node{nil}
-		}
-	}
-	return jin
-}
-
-// CheckGet returns a pointer to a new `Node` object and
-// a `bool` identifying success or failure
-//
-// useful for chained operations when success is important:
-//    if data, ok := js.Get("top_level").CheckGet("inner"); ok {
-//        log.Println(data)
-//    }
-func (j *Node) CheckGet(key string) (*Node, bool) {
+// and a bool identifying success or failure
+func (j *Node) GetKey(key string) (*Node, bool) {
 	m, err := j.Map()
 	if err == nil {
 		if val, ok := m[key]; ok {
@@ -194,35 +133,86 @@ func (j *Node) CheckGet(key string) (*Node, bool) {
 	return nil, false
 }
 
-// JsonMap returns a copy of a Json map, but with values as Jsons
-func (j *Json) JsonMap() (map[string]*Json, error) {
+// GetIndex returns a pointer to a new `Node` object
+// for `index` in its `array` representation
+// and a bool identifying success or failure
+func (j *Node) GetIndex(index int) (*Node, bool) {
+	a, err := j.Array()
+	if err == nil {
+		if len(a) > index {
+			return &Node{a[index]}, true
+		}
+	}
+	return nil, false
+}
+
+// Get searches for the item as specified by the branch
+// within a nested Json and returns a new Json pointer
+// the pointer is always a valid Json, allowing for chained operations
+//
+//   newJs := js.Get("top_level", "entries", 3, "dict")
+func (j *Node) Get(branch ...interface{}) *Node {
+	jin, ok := j.CheckGet(branch...)
+	if ok {
+		return jin
+	} else {
+		return &Node{nil}
+	}
+}
+
+// CheckGet is like Get, except it also returns a bool
+// indicating whenever the branch was found or not
+// the Json pointer may be nil
+//
+//   newJs, ok := js.Get("top_level", "entries", 3, "dict")
+func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
+	jin := j
+	var ok bool
+	for _, p := range branch {
+		switch p.(type) {
+		case string:
+			jin, ok = jin.GetKey(p.(string))
+		case int:
+			jin, ok = jin.GetIndex(p.(int))
+		default:
+			ok = false
+		}
+		if !ok {
+			return nil, false
+		}
+	}
+	return jin, true
+}
+
+// JsonMap returns a copy of a Json map, but with values as Nodes
+func (j *Node) JsonMap() (NodeMap, error) {
 	m, err := j.Map()
 	if err != nil {
 		return nil, err
 	}
-	jm := make(map[string]*Json)
+	jm := make(NodeMap)
 	for key, val := range m {
-		jm[key] = &Json{val}
+		jm[key] = &Node{val}
 	}
 	return jm, nil
 }
 
-// JsonArray returns a copy of an array, but with each value as a Json
-func (j *Json) JsonArray() ([]*Json, error) {
+// JsonArray returns a copy of an array, but with each value as a Node
+func (j *Node) JsonArray() ([]*Node, error) {
 	a, err := j.Array()
 	if err != nil {
 		return nil, err
 	}
-	ja := make([]*Json, len(a))
+	ja := make([]*Node, len(a))
 	for key, val := range a {
-		ja[key] = &Json{val}
+		ja[key] = &Node{val}
 	}
 	return ja, nil
 }
 
 // Map type asserts to `map`
-func (j *Node) Map() (map[string]interface{}, error) {
-	if m, ok := (j.data).(map[string]interface{}); ok {
+func (j *Node) Map() (AnyMap, error) {
+	if m, ok := (j.data).(AnyMap); ok {
 		return m, nil
 	}
 	return nil, errors.New("type assertion to map[string]interface{} failed")
@@ -282,8 +272,8 @@ func (j *Node) StringArray() ([]string, error) {
 }
 
 // MustJsonArray guarantees the return of a `[]interface{}` (with optional default)
-func (j *Json) MustJsonArray(args ...[]*Json) []*Json {
-	var def []*Json
+func (j *Node) MustJsonArray(args ...NodeSlice) NodeSlice {
+	var def NodeSlice
 
 	switch len(args) {
 	case 0:
@@ -302,8 +292,8 @@ func (j *Json) MustJsonArray(args ...[]*Json) []*Json {
 }
 
 // MustJsonMap guarantees the return of a `map[string]interface{}` (with optional default)
-func (j *Json) MustJsonMap(args ...map[string]*Json) map[string]*Json {
-	var def map[string]*Json
+func (j *Node) MustJsonMap(args ...NodeMap) NodeMap {
+	var def NodeMap
 
 	switch len(args) {
 	case 0:
@@ -352,8 +342,8 @@ func (j *Node) MustArray(args ...[]interface{}) []interface{} {
 //		for k, v := range js.Get("dictionary").MustMap() {
 //			fmt.Println(k, v)
 //		}
-func (j *Node) MustMap(args ...map[string]interface{}) map[string]interface{} {
-	var def map[string]interface{}
+func (j *Node) MustMap(args ...AnyMap) AnyMap {
+	var def AnyMap
 
 	switch len(args) {
 	case 0:

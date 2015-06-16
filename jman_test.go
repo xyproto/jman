@@ -39,11 +39,11 @@ func TestSimplejson(t *testing.T) {
 	aws := js.Get("test").Get("arraywithsubs")
 	assert.NotEqual(t, nil, aws)
 	var awsval int
-	awsval, _ = aws.GetIndex(0).Get("subkeyone").Int()
+	awsval, _ = aws.Get(0).Get("subkeyone").Int()
 	assert.Equal(t, 1, awsval)
-	awsval, _ = aws.GetIndex(1).Get("subkeytwo").Int()
+	awsval, _ = aws.Get(1).Get("subkeytwo").Int()
 	assert.Equal(t, 2, awsval)
-	awsval, _ = aws.GetIndex(1).Get("subkeythree").Int()
+	awsval, _ = aws.Get(1).Get("subkeythree").Int()
 	assert.Equal(t, 3, awsval)
 
 	i, _ := js.Get("test").Get("int").Int()
@@ -88,16 +88,16 @@ func TestSimplejson(t *testing.T) {
 	assert.Equal(t, strs2[1], "")
 	assert.Equal(t, strs2[2], "efg")
 
-	gp, _ := js.GetPath("test", "string").String()
+	gp, _ := js.Get("test", "string").String()
 	assert.Equal(t, "simplejson", gp)
 
-	gp2, _ := js.GetPath("test", "int").Int()
+	gp2, _ := js.Get("test", "int").Int()
 	assert.Equal(t, 10, gp2)
 
-	gpa, _ := js.GetPathAny("test", "string_array", 0).String()
+	gpa, _ := js.Get("test", "string_array", 0).String()
 	assert.Equal(t, "asdf", gpa)
 
-	gpa2, _ := js.GetPathAny("test", "arraywithsubs", 1, "subkeythree").Int()
+	gpa2, _ := js.Get("test", "arraywithsubs", 1, "subkeythree").Int()
 	assert.Equal(t, 3, gpa2)
 
 	jm, err := js.Get("test").JsonMap()
@@ -105,7 +105,7 @@ func TestSimplejson(t *testing.T) {
 	jmbool, _ := jm["bool"].Bool()
 	assert.Equal(t, true, jmbool)
 
-	ja, err := js.GetPath("test", "string_array").JsonArray()
+	ja, err := js.Get("test", "string_array").JsonArray()
 	assert.Equal(t, err, nil)
 	jastr, _ := ja[0].String()
 	assert.Equal(t, "asdf", jastr)
@@ -124,13 +124,13 @@ func TestSimplejson(t *testing.T) {
 	js.Get("test").Get("sub_obj").Set("a", 2)
 	assert.Equal(t, 2, js.Get("test").Get("sub_obj").Get("a").MustInt())
 
-	js.GetPath("test", "sub_obj").Set("a", 3)
-	assert.Equal(t, 3, js.GetPath("test", "sub_obj", "a").MustInt())
-	
-	jmm:= js.Get("missing_map").MustJsonMap(map[string]*Json{"js1":js})
+	js.Get("test", "sub_obj").Set("a", 3)
+	assert.Equal(t, 3, js.Get("test", "sub_obj", "a").MustInt())
+
+	jmm := js.Get("missing_map").MustJsonMap(map[string]*Json{"js1": js})
 	assert.Equal(t, js, jmm["js1"])
 
-	jma := js.GetPath("missing_array").MustJsonArray([]*Json{js})
+	jma := js.Get("missing_array").MustJsonArray([]*Json{js})
 	assert.Equal(t, js, jma[0])
 }
 
@@ -165,7 +165,7 @@ func TestSet(t *testing.T) {
 
 	js.Set("baz", "bing")
 
-	s, err := js.GetPath("baz").String()
+	s, err := js.Get("baz").String()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "bing", s)
 }
@@ -177,7 +177,7 @@ func TestReplace(t *testing.T) {
 	err = js.UnmarshalJSON([]byte(`{"baz":"bing"}`))
 	assert.Equal(t, nil, err)
 
-	s, err := js.GetPath("baz").String()
+	s, err := js.Get("baz").String()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "bing", s)
 }
@@ -188,7 +188,7 @@ func TestSetPath(t *testing.T) {
 
 	js.SetPath([]string{"foo", "bar"}, "baz")
 
-	s, err := js.GetPath("foo", "bar").String()
+	s, err := js.Get("foo", "bar").String()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "baz", s)
 }
@@ -197,16 +197,16 @@ func TestSetPathNoPath(t *testing.T) {
 	js, err := New([]byte(`{"some":"data","some_number":1.0,"some_bool":false}`))
 	assert.Equal(t, nil, err)
 
-	f := js.GetPath("some_number").MustFloat64(99.0)
+	f := js.Get("some_number").MustFloat64(99.0)
 	assert.Equal(t, f, 1.0)
 
 	js.SetPath([]string{}, map[string]interface{}{"foo": "bar"})
 
-	s, err := js.GetPath("foo").String()
+	s, err := js.Get("foo").String()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "bar", s)
 
-	f = js.GetPath("some_number").MustFloat64(99.0)
+	f = js.Get("some_number").MustFloat64(99.0)
 	assert.Equal(t, f, 99.0)
 }
 
@@ -217,29 +217,29 @@ func TestPathWillAugmentExisting(t *testing.T) {
 	js.SetPath([]string{"this", "d"}, "dd")
 
 	cases := []struct {
-		path    []string
+		path    []interface{}
 		outcome string
 	}{
 		{
-			path:    []string{"this", "a"},
+			path:    []interface{}{"this", "a"},
 			outcome: "aa",
 		},
 		{
-			path:    []string{"this", "b"},
+			path:    []interface{}{"this", "b"},
 			outcome: "bb",
 		},
 		{
-			path:    []string{"this", "c"},
+			path:    []interface{}{"this", "c"},
 			outcome: "cc",
 		},
 		{
-			path:    []string{"this", "d"},
+			path:    []interface{}{"this", "d"},
 			outcome: "dd",
 		},
 	}
 
 	for _, tc := range cases {
-		s, err := js.GetPath(tc.path...).String()
+		s, err := js.Get(tc.path...).String()
 		assert.Equal(t, nil, err)
 		assert.Equal(t, tc.outcome, s)
 	}
@@ -252,7 +252,7 @@ func TestPathWillOverwriteExisting(t *testing.T) {
 
 	js.SetPath([]string{"this", "a", "foo"}, "bar")
 
-	s, err := js.GetPath("this", "a", "foo").String()
+	s, err := js.Get("this", "a", "foo").String()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "bar", s)
 }

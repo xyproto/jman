@@ -62,7 +62,11 @@ func jsonpath(js *Node, JSONpath string) (*Node, string, error) {
 		if err != nil {
 			return js, JSONpath, errors.New("Invalid index: " + fields[0] + " (" + err.Error() + ")")
 		}
-		return jsonpath(js.GetIndex(index), secondpart)
+		node, ok := js.GetIndex(index)
+		if !ok {
+			return js, JSONpath, errors.New("Could not find index: " + fields[0])
+		}
+		return jsonpath(node, secondpart)
 	}
 	name := firstpart
 	if secondpart != "" {
