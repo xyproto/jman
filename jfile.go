@@ -14,15 +14,15 @@ var (
 	ErrSpecificNode = errors.New("Could not find a specific node that matched the given path")
 )
 
-// JSONFile represents a JSON file and contains the filename and root node
-type JSONFile struct {
+// JFile represents a JSON file and contains the filename and root node
+type JFile struct {
 	filename string
 	rootnode *Node
 	rw       *sync.RWMutex
 }
 
-// NewFile will read the given filename and return a JSONFile struct
-func NewFile(filename string) (*JSONFile, error) {
+// NewFile will read the given filename and return a JFile struct
+func NewFile(filename string) (*JFile, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,15 @@ func NewFile(filename string) (*JSONFile, error) {
 		return nil, err
 	}
 	rw := &sync.RWMutex{}
-	return &JSONFile{filename, js, rw}, nil
+	return &JFile{filename, js, rw}, nil
+}
+
+// Add two byte slices together
+func badd(a, b []byte) []byte {
+	var buf bytes.Buffer
+	buf.Write(a)
+	buf.Write(b)
+	return buf.Bytes()
 }
 
 // Recursively look up a given JSON path
@@ -75,7 +83,7 @@ func jsonpath(js *Node, JSONpath string) (*Node, string, error) {
 }
 
 // GetNode will find the JSON node that corresponds to the given JSON path
-func (jf *JSONFile) GetNode(JSONpath string) (*Node, error) {
+func (jf *JFile) GetNode(JSONpath string) (*Node, error) {
 	foundnode, leftoverpath, err := jsonpath(jf.rootnode, JSONpath)
 	if err != nil {
 		return nil, err
@@ -90,7 +98,7 @@ func (jf *JSONFile) GetNode(JSONpath string) (*Node, error) {
 }
 
 // GetString will find the string that corresponds to the given JSON path
-func (jf *JSONFile) GetString(JSONpath string) (string, error) {
+func (jf *JFile) GetString(JSONpath string) (string, error) {
 	node, err := jf.GetNode(JSONpath)
 	if err != nil {
 		return "", err
@@ -99,7 +107,7 @@ func (jf *JSONFile) GetString(JSONpath string) (string, error) {
 }
 
 // SetString will change the value of the key that the given JSON path points to
-func (jf *JSONFile) SetString(JSONpath, value string) error {
+func (jf *JFile) SetString(JSONpath, value string) error {
 	firstpart := ""
 	lastpart := JSONpath
 	if strings.Contains(JSONpath, ".") {
@@ -130,7 +138,7 @@ func (jf *JSONFile) SetString(JSONpath, value string) error {
 }
 
 // Write writes the current JSON data to the file
-func (jf *JSONFile) Write(data []byte) error {
+func (jf *JFile) Write(data []byte) error {
 	jf.rw.Lock()
 	defer jf.rw.Unlock()
 	// TODO: Add newline as well?
@@ -138,7 +146,7 @@ func (jf *JSONFile) Write(data []byte) error {
 }
 
 // AddJSON adds JSON data at the given JSON path
-func (jf *JSONFile) AddJSON(JSONpath, JSONdata string) error {
+func (jf *JFile) AddJSON(JSONpath, JSONdata string) error {
 	firstpart := ""
 	lastpart := JSONpath
 	if strings.Contains(JSONpath, ".") {
@@ -167,7 +175,7 @@ func (jf *JSONFile) AddJSON(JSONpath, JSONdata string) error {
 		return err
 	}
 
-	// TODO: Fork simplejson for a better way of adding data!
+	// TODO: Implement a more efficient way of adding data.
 	newFullJSON := bytes.Replace(fullJSON, listJSON, badd(listJSON[:len(listJSON)-1], []byte(","+JSONdata+"]")), 1)
 
 	js, err := New(newFullJSON)
