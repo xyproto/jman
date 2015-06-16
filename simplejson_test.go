@@ -1,17 +1,18 @@
 package simplejson
 
 import (
+	"bytes"
 	"encoding/json"
-	"testing"
-
 	"github.com/bmizerany/assert"
+	"strconv"
+	"testing"
 )
 
 func TestSimplejson(t *testing.T) {
 	var ok bool
 	var err error
 
-	js, err := NewJson([]byte(`{
+	js, err := NewJSON([]byte(`{
 		"test": {
 			"string_array": ["asdf", "ghjk", "zxcv"],
 			"string_array_null": ["abc", null, "efg"],
@@ -127,11 +128,11 @@ func TestSimplejson(t *testing.T) {
 func TestStdlibInterfaces(t *testing.T) {
 	val := new(struct {
 		Name   string `json:"name"`
-		Params *Json  `json:"params"`
+		Params *JSON  `json:"params"`
 	})
 	val2 := new(struct {
 		Name   string `json:"name"`
-		Params *Json  `json:"params"`
+		Params *JSON  `json:"params"`
 	})
 
 	raw := `{"name":"myobject","params":{"string":"simplejson"}}`
@@ -150,7 +151,7 @@ func TestStdlibInterfaces(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	js, err := NewJson([]byte(`{}`))
+	js, err := NewJSON([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
 	js.Set("baz", "bing")
@@ -161,7 +162,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestReplace(t *testing.T) {
-	js, err := NewJson([]byte(`{}`))
+	js, err := NewJSON([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
 	err = js.UnmarshalJSON([]byte(`{"baz":"bing"}`))
@@ -173,7 +174,7 @@ func TestReplace(t *testing.T) {
 }
 
 func TestSetPath(t *testing.T) {
-	js, err := NewJson([]byte(`{}`))
+	js, err := NewJSON([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
 	js.SetPath([]string{"foo", "bar"}, "baz")
@@ -184,7 +185,7 @@ func TestSetPath(t *testing.T) {
 }
 
 func TestSetPathNoPath(t *testing.T) {
-	js, err := NewJson([]byte(`{"some":"data","some_number":1.0,"some_bool":false}`))
+	js, err := NewJSON([]byte(`{"some":"data","some_number":1.0,"some_bool":false}`))
 	assert.Equal(t, nil, err)
 
 	f := js.GetPath("some_number").MustFloat64(99.0)
@@ -201,7 +202,7 @@ func TestSetPathNoPath(t *testing.T) {
 }
 
 func TestPathWillAugmentExisting(t *testing.T) {
-	js, err := NewJson([]byte(`{"this":{"a":"aa","b":"bb","c":"cc"}}`))
+	js, err := NewJSON([]byte(`{"this":{"a":"aa","b":"bb","c":"cc"}}`))
 	assert.Equal(t, nil, err)
 
 	js.SetPath([]string{"this", "d"}, "dd")
@@ -237,7 +238,7 @@ func TestPathWillAugmentExisting(t *testing.T) {
 
 func TestPathWillOverwriteExisting(t *testing.T) {
 	// notice how "a" is 0.1 - but then we'll try to set at path a, foo
-	js, err := NewJson([]byte(`{"this":{"a":0.1,"b":"bb","c":"cc"}}`))
+	js, err := NewJSON([]byte(`{"this":{"a":0.1,"b":"bb","c":"cc"}}`))
 	assert.Equal(t, nil, err)
 
 	js.SetPath([]string{"this", "a", "foo"}, "bar")
@@ -245,4 +246,89 @@ func TestPathWillOverwriteExisting(t *testing.T) {
 	s, err := js.GetPath("this", "a", "foo").String()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "bar", s)
+}
+
+func TestNewFromReader(t *testing.T) {
+	//Use New Constructor
+	buf := bytes.NewBuffer([]byte(`{
+		"test": {
+			"array": [1, "2", 3],
+			"arraywithsubs": [
+				{"subkeyone": 1},
+				{"subkeytwo": 2, "subkeythree": 3}
+			],
+			"bignum": 9223372036854775807,
+			"uint64": 18446744073709551615
+		}
+	}`))
+	js, err := NewFromReader(buf)
+
+	//Standard Test Case
+	assert.NotEqual(t, nil, js)
+	assert.Equal(t, nil, err)
+
+	arr, _ := js.Get("test").Get("array").Array()
+	assert.NotEqual(t, nil, arr)
+	for i, v := range arr {
+		var iv int
+		switch v.(type) {
+		case json.Number:
+			i64, err := v.(json.Number).Int64()
+			assert.Equal(t, nil, err)
+			iv = int(i64)
+		case string:
+			iv, _ = strconv.Atoi(v.(string))
+		}
+		assert.Equal(t, i+1, iv)
+	}
+
+	ma := js.Get("test").Get("array").MustArray()
+	assert.Equal(t, ma, []interface{}{json.Number("1"), "2", json.Number("3")})
+
+	mm := js.Get("test").Get("arraywithsubs").GetIndex(0).MustMap()
+	assert.Equal(t, mm, map[string]interface{}{"subkeyone": json.Number("1")})
+
+	assert.Equal(t, js.Get("test").Get("bignum").MustInt64(), int64(9223372036854775807))
+	assert.Equal(t, js.Get("test").Get("uint64").MustUint64(), uint64(18446744073709551615))
+}
+
+func TestSimplejsonGo11(t *testing.T) {
+	js, err := NewJSON([]byte(`{
+		"test": {
+			"array": [1, "2", 3],
+			"arraywithsubs": [
+				{"subkeyone": 1},
+				{"subkeytwo": 2, "subkeythree": 3}
+			],
+			"bignum": 9223372036854775807,
+			"uint64": 18446744073709551615
+		}
+	}`))
+
+	assert.NotEqual(t, nil, js)
+	assert.Equal(t, nil, err)
+
+	arr, _ := js.Get("test").Get("array").Array()
+	assert.NotEqual(t, nil, arr)
+	for i, v := range arr {
+		var iv int
+		switch v.(type) {
+		case json.Number:
+			i64, err := v.(json.Number).Int64()
+			assert.Equal(t, nil, err)
+			iv = int(i64)
+		case string:
+			iv, _ = strconv.Atoi(v.(string))
+		}
+		assert.Equal(t, i+1, iv)
+	}
+
+	ma := js.Get("test").Get("array").MustArray()
+	assert.Equal(t, ma, []interface{}{json.Number("1"), "2", json.Number("3")})
+
+	mm := js.Get("test").Get("arraywithsubs").GetIndex(0).MustMap()
+	assert.Equal(t, mm, map[string]interface{}{"subkeyone": json.Number("1")})
+
+	assert.Equal(t, js.Get("test").Get("bignum").MustInt64(), int64(9223372036854775807))
+	assert.Equal(t, js.Get("test").Get("uint64").MustUint64(), uint64(18446744073709551615))
 }
