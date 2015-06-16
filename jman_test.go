@@ -264,7 +264,7 @@ func TestNewFromReader(t *testing.T) {
 	assert.NotEqual(t, nil, js)
 	assert.Equal(t, nil, err)
 
-	arr := js.Get("test").Get("array").Slice()
+	arr, _ := js.Get("test").Get("array").CheckSlice()
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
@@ -305,7 +305,7 @@ func TestSimplejsonGo11(t *testing.T) {
 	assert.NotEqual(t, nil, js)
 	assert.Equal(t, nil, err)
 
-	arr := js.Get("test").Get("array").Slice()
+	arr, _ := js.Get("test").Get("array").CheckSlice()
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
