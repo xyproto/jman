@@ -89,7 +89,7 @@ func (jf *JSONFile) GetNode(JSONpath string) (*Node, error) {
 	return foundnode, nil
 }
 
-// GetString will find the string that corresponds to the given JSON Path
+// GetString will find the string that corresponds to the given JSON path
 func (jf *JSONFile) GetString(JSONpath string) (string, error) {
 	node, err := jf.GetNode(JSONpath)
 	if err != nil {
@@ -98,6 +98,7 @@ func (jf *JSONFile) GetString(JSONpath string) (string, error) {
 	return node.String(), nil
 }
 
+// SetString will change the value of the key that the given JSON path points to
 func (jf *JSONFile) SetString(JSONpath, value string) error {
 	firstpart := ""
 	lastpart := JSONpath
@@ -200,7 +201,7 @@ func AddJSON(filename, JSONpath, JSONdata string) error {
 	return jf.AddJSON(JSONpath, JSONdata)
 }
 
-// JSONString will find the string that corresponds to the given JSON Path,
+// GetString will find the string that corresponds to the given JSON Path,
 // given a filename and a simple JSON path expression.
 func GetString(filename, JSONpath string) (string, error) {
 	jf, err := NewFile(filename)
