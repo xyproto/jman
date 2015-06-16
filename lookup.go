@@ -1,5 +1,4 @@
-// Package lookup provides a way to search and manipulate JSON files using simple JSON path expressions
-package simplejson
+package jman
 
 import (
 	"bytes"
@@ -12,6 +11,7 @@ import (
 )
 
 var (
+	// For when retrieving a node does not return a specific key/value, but perhaps a map
 	ErrSpecificNode = errors.New("Could not find a specific node that matched the given path")
 )
 
@@ -22,13 +22,13 @@ type JSONFile struct {
 	rw       *sync.RWMutex
 }
 
-// NewJSONFile will read the given filename and return a JSONFile struct
-func NewJSONFile(filename string) (*JSONFile, error) {
+// NewFile will read the given filename and return a JSONFile struct
+func NewFile(filename string) (*JSONFile, error) {
 	data, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return nil, err
 	}
-	js, err := NewJSON(data)
+	js, err := New(data)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +71,8 @@ func jsonpath(js *Node, JSONpath string) (*Node, string, error) {
 	return js.Get(name), "", nil
 }
 
-// Lookup will find the JSON node that corresponds to the given JSON path
-func (jf *JSONFile) Lookup(JSONpath string) (*Node, error) {
+// GetNode will find the JSON node that corresponds to the given JSON path
+func (jf *JSONFile) GetNode(JSONpath string) (*Node, error) {
 	foundnode, leftoverpath, err := jsonpath(jf.rootnode, JSONpath)
 	if err != nil {
 		return nil, err
@@ -86,9 +86,9 @@ func (jf *JSONFile) Lookup(JSONpath string) (*Node, error) {
 	return foundnode, nil
 }
 
-// LookupString will find the string that corresponds to the given JSON Path
-func (jf *JSONFile) LookupString(JSONpath string) (string, error) {
-	foundnode, err := jf.Lookup(JSONpath)
+// GetString will find the string that corresponds to the given JSON Path
+func (jf *JSONFile) GetString(JSONpath string) (string, error) {
+	foundnode, err := jf.GetNode(JSONpath)
 	if err != nil {
 		return "", err
 	}
@@ -130,6 +130,7 @@ func (jf *JSONFile) SetString(JSONpath, value string) error {
 	return jf.Write(newdata)
 }
 
+// Write writes the current JSON data to the file
 func (jf *JSONFile) Write(data []byte) error {
 	jf.rw.Lock()
 	defer jf.rw.Unlock()
@@ -137,6 +138,7 @@ func (jf *JSONFile) Write(data []byte) error {
 	return ioutil.WriteFile(jf.filename, data, 0666)
 }
 
+// AddJSON adds JSON data at the given JSON path
 func (jf *JSONFile) AddJSON(JSONpath, JSONdata string) error {
 	firstpart := ""
 	lastpart := JSONpath
@@ -169,7 +171,7 @@ func (jf *JSONFile) AddJSON(JSONpath, JSONdata string) error {
 	// TODO: Fork simplejson for a better way of adding data!
 	newFullJSON := bytes.Replace(fullJSON, listJSON, badd(listJSON[:len(listJSON)-1], []byte(","+JSONdata+"]")), 1)
 
-	js, err := NewJSON(newFullJSON)
+	js, err := New(newFullJSON)
 	if err != nil {
 		return err
 	}
@@ -182,16 +184,18 @@ func (jf *JSONFile) AddJSON(JSONpath, JSONdata string) error {
 	return jf.Write(newFullJSON)
 }
 
+// SetString sets a value to the given JSON file at the given JSON path
 func SetString(filename, JSONpath, value string) error {
-	jf, err := NewJSONFile(filename)
+	jf, err := NewFile(filename)
 	if err != nil {
 		return err
 	}
 	return jf.SetString(JSONpath, value)
 }
 
+// AddJSON adds JSON data to the given JSON file at the given JSON path
 func AddJSON(filename, JSONpath, JSONdata string) error {
-	jf, err := NewJSONFile(filename)
+	jf, err := NewFile(filename)
 	if err != nil {
 		return err
 	}
@@ -200,10 +204,10 @@ func AddJSON(filename, JSONpath, JSONdata string) error {
 
 // JSONString will find the string that corresponds to the given JSON Path,
 // given a filename and a simple JSON path expression.
-func LookupString(filename, JSONpath string) (string, error) {
-	jf, err := NewJSONFile(filename)
+func GetString(filename, JSONpath string) (string, error) {
+	jf, err := NewFile(filename)
 	if err != nil {
 		return "", err
 	}
-	return jf.LookupString(JSONpath)
+	return jf.GetString(JSONpath)
 }

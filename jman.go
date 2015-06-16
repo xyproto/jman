@@ -1,5 +1,5 @@
-// Package simplejson provides a way to search and manipulate JSON documents
-package simplejson
+// Package jman provides a way to search and manipulate JSON documents
+package jman
 
 import (
 	"bytes"
@@ -11,17 +11,17 @@ import (
 	"strconv"
 )
 
-// Stable within the same major version number
-const Version = 2.0
+// Stable API within the same major version number
+const Version = 1.0
 
 // Node can be a JSON document, or a part of a JSON document
 type Node struct {
 	data interface{}
 }
 
-// NewJSON returns a pointer to a new `Node` object
+// New returns a pointer to a new `Node` object
 // after unmarshaling `body` bytes
-func NewJSON(body []byte) (*Node, error) {
+func New(body []byte) (*Node, error) {
 	j := new(Node)
 	err := j.UnmarshalJSON(body)
 	if err != nil {
@@ -30,8 +30,8 @@ func NewJSON(body []byte) (*Node, error) {
 	return j, nil
 }
 
-// New returns a pointer to a new, empty `Node` object
-func New() *Node {
+// NewNode returns a pointer to a new, empty `Node` object
+func NewNode() *Node {
 	return &Node{
 		data: make(map[string]interface{}),
 	}

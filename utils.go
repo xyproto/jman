@@ -1,4 +1,4 @@
-package simplejson
+package jman
 
 import (
 	"bytes"

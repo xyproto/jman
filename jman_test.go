@@ -1,4 +1,4 @@
-package simplejson
+package jman
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ func TestSimplejson(t *testing.T) {
 	var ok bool
 	var err error
 
-	js, err := NewJSON([]byte(`{
+	js, err := New([]byte(`{
 		"test": {
 			"string_array": ["asdf", "ghjk", "zxcv"],
 			"string_array_null": ["abc", null, "efg"],
@@ -128,11 +128,11 @@ func TestSimplejson(t *testing.T) {
 func TestStdlibInterfaces(t *testing.T) {
 	val := new(struct {
 		Name   string `json:"name"`
-		Params *JSON  `json:"params"`
+		Params *Node  `json:"params"`
 	})
 	val2 := new(struct {
 		Name   string `json:"name"`
-		Params *JSON  `json:"params"`
+		Params *Node  `json:"params"`
 	})
 
 	raw := `{"name":"myobject","params":{"string":"simplejson"}}`
@@ -151,7 +151,7 @@ func TestStdlibInterfaces(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	js, err := NewJSON([]byte(`{}`))
+	js, err := New([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
 	js.Set("baz", "bing")
@@ -162,7 +162,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestReplace(t *testing.T) {
-	js, err := NewJSON([]byte(`{}`))
+	js, err := New([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
 	err = js.UnmarshalJSON([]byte(`{"baz":"bing"}`))
@@ -174,7 +174,7 @@ func TestReplace(t *testing.T) {
 }
 
 func TestSetPath(t *testing.T) {
-	js, err := NewJSON([]byte(`{}`))
+	js, err := New([]byte(`{}`))
 	assert.Equal(t, nil, err)
 
 	js.SetPath([]string{"foo", "bar"}, "baz")
@@ -185,7 +185,7 @@ func TestSetPath(t *testing.T) {
 }
 
 func TestSetPathNoPath(t *testing.T) {
-	js, err := NewJSON([]byte(`{"some":"data","some_number":1.0,"some_bool":false}`))
+	js, err := New([]byte(`{"some":"data","some_number":1.0,"some_bool":false}`))
 	assert.Equal(t, nil, err)
 
 	f := js.GetPath("some_number").MustFloat64(99.0)
@@ -202,7 +202,7 @@ func TestSetPathNoPath(t *testing.T) {
 }
 
 func TestPathWillAugmentExisting(t *testing.T) {
-	js, err := NewJSON([]byte(`{"this":{"a":"aa","b":"bb","c":"cc"}}`))
+	js, err := New([]byte(`{"this":{"a":"aa","b":"bb","c":"cc"}}`))
 	assert.Equal(t, nil, err)
 
 	js.SetPath([]string{"this", "d"}, "dd")
@@ -238,7 +238,7 @@ func TestPathWillAugmentExisting(t *testing.T) {
 
 func TestPathWillOverwriteExisting(t *testing.T) {
 	// notice how "a" is 0.1 - but then we'll try to set at path a, foo
-	js, err := NewJSON([]byte(`{"this":{"a":0.1,"b":"bb","c":"cc"}}`))
+	js, err := New([]byte(`{"this":{"a":0.1,"b":"bb","c":"cc"}}`))
 	assert.Equal(t, nil, err)
 
 	js.SetPath([]string{"this", "a", "foo"}, "bar")
@@ -293,7 +293,7 @@ func TestNewFromReader(t *testing.T) {
 }
 
 func TestSimplejsonGo11(t *testing.T) {
-	js, err := NewJSON([]byte(`{
+	js, err := New([]byte(`{
 		"test": {
 			"array": [1, "2", 3],
 			"arraywithsubs": [

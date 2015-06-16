@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/xyproto/lookup"
+	"github.com/xyproto/jman"
 	"log"
 	"os"
 )
@@ -20,7 +20,7 @@ func main() {
 	filename := flag.Args()[0]
 	JSONpath := flag.Args()[1]
 
-	foundString, err := lookup.JSONString(filename, JSONpath)
+	foundString, err := jman.GetString(filename, JSONpath)
 	if err != nil {
 		log.Fatal(err)
 	}

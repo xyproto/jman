@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/xyproto/simplejson2"
+	"github.com/xyproto/jman"
 	"log"
 )
 
@@ -11,7 +11,7 @@ func main() {
 	data := []byte(`{"a":2, "b":3}`)
 
 	// Create a new *simplejson.JSON struct
-	js, err := simplejson.NewJSON(data)
+	js, err := jman.New(data)
 	if err != nil {
 		log.Fatal(err)
 	}

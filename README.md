@@ -1,4 +1,4 @@
-#SimpleJSON2 [![Build Status](https://travis-ci.org/xyproto/simplejson2.svg?branch=master)](https://travis-ci.org/xyproto/simplejson2) [![GoDoc](https://godoc.org/github.com/xyproto/simplejson2?status.svg)](http://godoc.org/github.com/xyproto/simplejson2)
+#JMan [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
 
 Interact with arbitrary JSON.
 
@@ -9,7 +9,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/xyproto/simplejson2"
+	"github.com/xyproto/jman"
 	"log"
 )
 
@@ -18,7 +18,7 @@ func main() {
 	data := []byte(`{"a":2, "b":3}`)
 
 	// Create a new *simplejson.JSON struct
-	js, err := simplejson.NewJSON(data)
+	js, err := jman.New(data)
 	if err != nil {
 		log.Fatal(err)
 	}
