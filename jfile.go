@@ -175,9 +175,17 @@ func (jf *JFile) AddJSON(JSONpath, JSONdata string) error {
 		return err
 	}
 
-	// TODO: Implement a more efficient way of adding data.
-	newFullJSON := bytes.Replace(fullJSON, listJSON, badd(listJSON[:len(listJSON)-1], []byte(","+JSONdata+"]")), 1)
+	if len(listJSON) == 0 {
+		return errors.New("Can not add to a completely empty list.")
+	}
 
+	// TODO: Implement a safer and more efficient way of adding data.
+	var newFullJSON []byte
+	if string(fullJSON) == "[]" {
+		newFullJSON = []byte("[" + JSONdata + "]")
+	} else {
+		newFullJSON = bytes.Replace(fullJSON, listJSON, badd(listJSON[:len(listJSON)-1], []byte(","+JSONdata+"]")), 1)
+	}
 	js, err := New(newFullJSON)
 	if err != nil {
 		return err
