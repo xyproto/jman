@@ -149,22 +149,21 @@ func (j *Node) GetIndex(index int) (*Node, bool) {
 }
 
 // Get searches for the item as specified by the branch
-// within a nested Json and returns a new Json pointer
-// the pointer is always a valid Json, allowing for chained operations
+// within a nested Node and returns a new Node pointer
+// the pointer is always a valid Node, allowing for chained operations
 //
 //   newJs := js.Get("top_level", "entries", 3, "dict")
 func (j *Node) Get(branch ...interface{}) *Node {
 	jin, ok := j.CheckGet(branch...)
 	if ok {
 		return jin
-	} else {
-		return NilNode
 	}
+	return NilNode
 }
 
 // CheckGet is like Get, except it also returns a bool
 // indicating whenever the branch was found or not
-// the Json pointer may be nil
+// the Node pointer may be nil
 //
 //   newJs, ok := js.Get("top_level", "entries", 3, "dict")
 func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
@@ -186,7 +185,7 @@ func (j *Node) CheckGet(branch ...interface{}) (*Node, bool) {
 	return jin, true
 }
 
-// ChechNodeMap returns a copy of a Json map, but with values as Jsons
+// ChechNodeMap returns a copy of a Node map, but with values as Nodes
 func (j *Node) CheckNodeMap() (NodeMap, bool) {
 	m, ok := j.CheckMap()
 	if !ok {
@@ -199,7 +198,7 @@ func (j *Node) CheckNodeMap() (NodeMap, bool) {
 	return jm, true
 }
 
-// CheckNodeSlice returns a copy of an array, but with each value as a Json
+// CheckNodeSlice returns a copy of a slice, but with each value as a Node
 func (j *Node) CheckNodeSlice() ([]*Node, bool) {
 	a, ok := j.CheckSlice()
 	if !ok {
@@ -244,7 +243,7 @@ func (j *Node) CheckString() (string, bool) {
 	return "", false
 }
 
-// NodeSlice guarantees the return of a `[]interface{}` (with optional default)
+// NodeSlice guarantees the return of a `[]*Node` (with optional default)
 func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
 	var def NodeSlice
 
@@ -256,8 +255,7 @@ func (j *Node) NodeSlice(args ...NodeSlice) NodeSlice {
 		log.Panicf("NodeSlice() received too many arguments %d", len(args))
 	}
 
-	a, ok := j.CheckNodeSlice()
-	if ok {
+	if a, ok := j.CheckNodeSlice(); ok {
 		return a
 	}
 
@@ -300,8 +298,7 @@ func (j *Node) Slice(args ...[]interface{}) []interface{} {
 		log.Panicf("Slice() received too many arguments %d", len(args))
 	}
 
-	a, ok := j.CheckSlice()
-	if ok {
+	if a, ok := j.CheckSlice(); ok {
 		return a
 	}
 
