@@ -1,4 +1,4 @@
-#Simple JSON manager [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
+#JSON manager [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
 
 Interact with arbitrary JSON.
 
