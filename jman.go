@@ -631,7 +631,7 @@ func (j *Node) AddJSON(JSONpath string, JSONdata []byte) error {
 	return nil
 }
 
-// DelNode removes a key in a map, given a JSON path to a map.
+// DelKey removes a key in a map, given a JSON path to a map.
 // Returns ErrKeyNotFound if the key is not found.
 func (j *Node) DelKey(JSONpath string) error {
 	_, mapnode, err := j.GetNodes(JSONpath)
@@ -644,7 +644,7 @@ func (j *Node) DelKey(JSONpath string) error {
 	}
 	keyToRemove := lastpart(JSONpath)
 	foundKey := false
-	for k, _ := range m {
+	for k := range m {
 		if k == keyToRemove {
 			foundKey = true
 			break
