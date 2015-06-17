@@ -42,3 +42,15 @@ The `SetBranch` method for the `Node` struct also provides a way of accessing JS
 ### Requirements
 
 * go >= 1.2
+
+### Utilities
+
+Three small utilities for interacting with JSON files are included:
+
+* jadd - for adding JSON data to a JSON file. Takes a filename, simple JSON path expression and JSON data.
+  * Example: `jadd books.json x '{"author": "Joan Grass", "book": "The joys of gardening"}'`
+* jset - for setting JSON string values in a JSON file. Takes a filename, simple JSON path expression and a string.
+  * Example: `jset books.json x[1].author Catniss`
+* jget - for retrieving a string value from a JSON file. Takes a filename and a simple JSON path expression.
+  * Example: `jget books.json x[1].author`
+
