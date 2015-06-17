@@ -1,6 +1,6 @@
 #JSON manager [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
 
-Interact with arbitrary JSON.
+Interact with arbitrary JSON. Use simple JSON path expressions.
 
 ### Example usage
 
@@ -52,3 +52,9 @@ Three small utilities for interacting with JSON files are included:
 * jget - for retrieving a string value from a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jget books.json x[1].author`
 
+General information
+-------------------
+
+* Version: 0.1
+* License: MIT
+* Alexander F Rødseth
