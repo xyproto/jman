@@ -31,7 +31,7 @@ func main() {
 }
 ~~~
 
-### JSON paths
+### JSON path expressions
 
 Several of the `JFile` methods takes a simple JSON path expression, like `x.books[1].author`. Only simple expressions using `x` for the root node, names and integer indexes are supported. For more advanced JSON path expressions, see [this blog post](http://goessner.net/articles/JsonPath/).
 
@@ -43,18 +43,20 @@ The `SetBranch` method for the `Node` struct also provides a way of accessing JS
 
 ### Utilities
 
-Three small utilities for interacting with JSON files are included:
+Four small utilities for interacting with JSON files are included:
 
-* jadd - for adding JSON data to a JSON file. Takes a filename, simple JSON path expression and JSON data.
-  * Example: `jadd books.json x '{"author": "Joan Grass", "book": "The joys of gardening"}'`
-* jset - for setting JSON string values in a JSON file. Takes a filename, simple JSON path expression and a string.
-  * Example: `jset books.json x[1].author Catniss`
 * jget - for retrieving a string value from a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jget books.json x[1].author`
+* jset - for setting JSON string values in a JSON file. Takes a filename, simple JSON path expression and a string.
+  * Example: `jset books.json x[1].author Catniss`
+* jdel - for removing a key from a map in a JSON file. Takes a filename and a simple JSON path expression.
+  * Example: `jdel abc.json b`
+* jadd - for adding JSON data to a JSON file. Takes a filename, simple JSON path expression and JSON data.
+  * Example: `jadd books.json x '{"author": "Joan Grass", "book": "The joys of gardening"}'`
 
 General information
 -------------------
 
-* Version: 0.1
+* Version: 0.2
 * License: MIT
 * Alexander F Rødseth
