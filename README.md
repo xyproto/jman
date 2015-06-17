@@ -2,7 +2,7 @@
 
 Interact with arbitrary JSON. Use simple JSON path expressions.
 
-### Example usage
+### Simple usage
 
 ~~~go
 package main
