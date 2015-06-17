@@ -14,10 +14,11 @@ func lastpart(JSONpath string) string {
 	return parts[len(parts)-1]
 }
 
-// Add two byte slices together
-func badd(a, b []byte) []byte {
+// Add any number of byte slices together
+func badd(args ...[]byte) []byte {
 	var buf bytes.Buffer
-	buf.Write(a)
-	buf.Write(b)
+	for _, byteslice := range args {
+		buf.Write(byteslice)
+	}
 	return buf.Bytes()
 }

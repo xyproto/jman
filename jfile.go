@@ -32,6 +32,11 @@ func NewFile(filename string) (*JFile, error) {
 	return &JFile{filename, js, rw}, nil
 }
 
+// SetRW allows a different mutex to be used when writing the JSON documents to file
+func (jf *JFile) SetRW(rw *sync.RWMutex) {
+	jf.rw = rw
+}
+
 // GetNode tries to find the JSON node that corresponds to the given JSON path
 func (jf *JFile) GetNode(JSONpath string) (*Node, error) {
 	node, _, err := jf.rootnode.GetNodes(JSONpath)
@@ -76,25 +81,22 @@ func (jf *JFile) Write(data []byte) error {
 	return ioutil.WriteFile(jf.filename, data, 0666)
 }
 
-// AddJSON adds JSON data at the given JSON path
+// AddJSON adds JSON data at the given JSON path. If pretty is true, the JSON is indented.
 func (jf *JFile) AddJSON(JSONpath string, JSONdata []byte, pretty bool) error {
 	jf.rootnode.AddJSON(JSONpath, JSONdata)
-	var (
-		data []byte
-		err  error
-	)
+	// Use the correct JSON function, depending on the pretty parameter
+	JSON := jf.rootnode.JSON
 	if pretty {
-		data, err = jf.rootnode.PrettyJSON()
-	} else {
-		data, err = jf.rootnode.JSON()
+		JSON = jf.rootnode.PrettyJSON
 	}
+	data, err := JSON()
 	if err != nil {
 		return err
 	}
 	return jf.Write(data)
 }
 
-// JSON returns the current JSON data
+// JSON returns the current JSON data, as prettily formatted JSON
 func (jf *JFile) JSON() ([]byte, error) {
 	return jf.rootnode.PrettyJSON()
 }

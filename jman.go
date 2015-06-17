@@ -560,10 +560,12 @@ func (j *Node) GetNodes(JSONpath string) (*Node, *Node, error) {
 	if JSONpath == "x" || JSONpath == "" {
 		// If the root node is a map or list with one element or less, use that as the node
 		if m, ok := j.CheckNodeMap(); ok && len(m) <= 1 {
-			return parent, parent, nil
+			return parent, NilNode, nil
 		} else if l, ok := j.CheckNodeList(); ok && len(l) <= 1 {
-			return parent, parent, nil
+			return parent, NilNode, nil
 		}
+		// We may have encountered a list with more than one item, for example
+		return parent, NilNode, nil
 	}
 	// The "current node" starts out with being the root node
 	n := j
@@ -584,7 +586,7 @@ func (j *Node) GetNodes(JSONpath string) (*Node, *Node, error) {
 				stringIndex := fields[0]
 				index, err := strconv.Atoi(stringIndex)
 				if err != nil {
-					return nil, nil, errors.New("Invalid index: " + stringIndex)
+					return NilNode, NilNode, errors.New("Invalid index: " + stringIndex)
 				}
 				parent = n
 				if name == "" {

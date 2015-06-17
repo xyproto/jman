@@ -355,7 +355,8 @@ func TestAddEmpty(t *testing.T) {
 	// Set up a JSON document, data to be added and the correct output to compare with
 	documentJSON := []byte("")
 	someJSON := []byte(`{"x":"7", "y":"15"}`)
-	correctNode, err := New(badd(badd([]byte("["), someJSON), []byte("]")))
+	// Expect brackets to be created automatically
+	correctNode, err := New(badd([]byte("["), someJSON, []byte("]")))
 	assert.Equal(t, nil, err)
 	correctJSON, err := correctNode.JSON()
 	assert.Equal(t, nil, err)
@@ -375,7 +376,7 @@ func TestAddEmpty2(t *testing.T) {
 	// Set up an empty JSON document, data to be added and the correct output to compare with
 	documentJSON := []byte("[]")
 	someJSON := []byte(`{"x":"7", "y":"15"}`)
-	correctNode, err := New(badd(badd([]byte("["), someJSON), []byte("]"))) // Create a list when adding to en empty document
+	correctNode, err := New(badd([]byte("["), someJSON, []byte("]")))
 	assert.Equal(t, nil, err)
 	correctJSON, err := correctNode.JSON()
 	assert.Equal(t, nil, err)
@@ -394,9 +395,30 @@ func TestAddEmpty2(t *testing.T) {
 func TestAdd(t *testing.T) {
 	// Set up a JSON document, data to be added and the correct output to compare with
 	contentJSON := []byte(`{"x":"2", "y":"3"}`)
-	documentJSON := badd(badd([]byte("["), contentJSON), []byte("]"))
+	documentJSON := badd([]byte("["), contentJSON, []byte("]"))
 	someJSON := []byte(`{"x":"7", "y":"15"}`)
-	correctNode, err := New(badd(badd(badd([]byte("["), contentJSON), []byte(",")), badd(someJSON, []byte("]"))))
+	correctNode, err := New(badd([]byte("["), contentJSON, []byte(","), someJSON, []byte("]")))
+	assert.Equal(t, nil, err)
+	correctJSON, err := correctNode.JSON()
+	assert.Equal(t, nil, err)
+
+	// Create a JSON document, add the data and compare
+	document, err := New(documentJSON)
+	assert.NotEqual(t, nil, document)
+	assert.Equal(t, nil, err)
+	err = document.AddJSON("x", someJSON)
+	assert.Equal(t, nil, err)
+	newJSON, err := document.JSON()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, string(newJSON), string(correctJSON))
+}
+
+func TestAdd2(t *testing.T) {
+	// Set up a JSON document, data to be added and the correct output to compare with
+	contentJSON := []byte(`{"x":"2", "y":"3"}`)
+	documentJSON := badd([]byte("["), contentJSON, []byte(","), contentJSON, []byte("]"))
+	someJSON := []byte(`{"x":"7", "y":"15"}`)
+	correctNode, err := New(badd([]byte("["), contentJSON, []byte(","), contentJSON, []byte(","), someJSON, []byte("]")))
 	assert.Equal(t, nil, err)
 	correctJSON, err := correctNode.JSON()
 	assert.Equal(t, nil, err)
