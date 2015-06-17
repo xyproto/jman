@@ -567,6 +567,11 @@ func (j *Node) GetNodes(JSONpath string) (*Node, *Node, error) {
 		// We may have encountered a list with more than one item, for example
 		return parent, NilNode, nil
 	}
+	// JSON path starting with x[ is a special case.
+	if strings.HasPrefix(JSONpath, "x[") {
+		// Add a "." between "x" and "[".
+		JSONpath = "x." + JSONpath[1:]
+	}
 	// The "current node" starts out with being the root node
 	n := j
 	if strings.Contains(JSONpath, ".") {

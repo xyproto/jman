@@ -349,6 +349,8 @@ func TestPath(t *testing.T) {
 	assert.Equal(t, "ghjk", n.String())
 	n = js.GetNode(".test.listwithsubs.[1].subkeytwo")
 	assert.Equal(t, 2, n.Int())
+	v := js.GetNode("x.test.sub_obj.a").Int()
+	assert.Equal(t, 1, v)
 }
 
 func TestAddEmpty(t *testing.T) {
