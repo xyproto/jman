@@ -12,8 +12,8 @@ func main() {
 	flag.Parse()
 
 	if len(flag.Args()) != 3 {
-		fmt.Println("syntax: add [filename] [JSON path] [JSON data]")
-		fmt.Println("example: add books.json x '{\"author\": \"Catniss\", \"book\": \"Yeah\"}'")
+		fmt.Println("Syntax: jadd [filename] [JSON path] [JSON data]")
+		fmt.Println("Example: jadd books.json x '{\"author\": \"Catniss\", \"book\": \"Yeah\"}'")
 		os.Exit(1)
 	}
 

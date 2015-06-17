@@ -28,7 +28,10 @@ type (
 )
 
 // NilNode is an empty node. Used when not finding nodes with Get.
-var NilNode = &Node{nil}
+var (
+	NilNode        = &Node{nil}
+	ErrKeyNotFound = errors.New("Key not found")
+)
 
 // New returns a pointer to a new `Node` object
 // after unmarshaling `body` bytes
@@ -132,15 +135,6 @@ func (j *Node) SetBranch(branch []string, val interface{}) {
 
 	// add remaining k/v
 	curr[branch[len(branch)-1]] = val
-}
-
-// Del modifies `Node` map by deleting `key` if it is present.
-func (j *Node) Del(key string) {
-	m, ok := j.CheckMap()
-	if !ok {
-		return
-	}
-	delete(m, key)
 }
 
 // GetKey returns a pointer to a new `Node` object
@@ -634,6 +628,32 @@ func (j *Node) AddJSON(JSONpath string, JSONdata []byte) error {
 		return err
 	}
 	node.data = append(l, newNode)
+	return nil
+}
+
+// DelNode removes a key in a map, given a JSON path to a map.
+// Returns ErrKeyNotFound if the key is not found.
+func (j *Node) DelKey(JSONpath string) error {
+	_, mapnode, err := j.GetNodes(JSONpath)
+	if err != nil {
+		return err
+	}
+	m, ok := mapnode.CheckMap()
+	if !ok {
+		return errors.New("Can only remove a key from a map. Not a map: " + mapnode.Info())
+	}
+	keyToRemove := lastpart(JSONpath)
+	foundKey := false
+	for k, _ := range m {
+		if k == keyToRemove {
+			foundKey = true
+			break
+		}
+	}
+	if !foundKey {
+		return ErrKeyNotFound
+	}
+	delete(m, lastpart(JSONpath))
 	return nil
 }
 

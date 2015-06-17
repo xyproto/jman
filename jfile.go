@@ -16,6 +16,7 @@ type JFile struct {
 	filename string
 	rootnode *Node
 	rw       *sync.RWMutex
+	pretty   bool // Indent JSON output prettily
 }
 
 // NewFile will read the given filename and return a JFile struct
@@ -29,7 +30,13 @@ func NewFile(filename string) (*JFile, error) {
 		return nil, err
 	}
 	rw := &sync.RWMutex{}
-	return &JFile{filename, js, rw}, nil
+	return &JFile{filename, js, rw, true}, nil
+}
+
+// SetPretty can be used for setting the "pretty" flag to true, for indenting
+// all JSON output. Set to true by default.
+func (jf *JFile) SetPretty(pretty bool) {
+	jf.pretty = pretty
 }
 
 // SetRW allows a different mutex to be used when writing the JSON documents to file
@@ -82,11 +89,27 @@ func (jf *JFile) Write(data []byte) error {
 }
 
 // AddJSON adds JSON data at the given JSON path. If pretty is true, the JSON is indented.
-func (jf *JFile) AddJSON(JSONpath string, JSONdata []byte, pretty bool) error {
+func (jf *JFile) AddJSON(JSONpath string, JSONdata []byte) error {
 	jf.rootnode.AddJSON(JSONpath, JSONdata)
 	// Use the correct JSON function, depending on the pretty parameter
 	JSON := jf.rootnode.JSON
-	if pretty {
+	if jf.pretty {
+		JSON = jf.rootnode.PrettyJSON
+	}
+	data, err := JSON()
+	if err != nil {
+		return err
+	}
+	return jf.Write(data)
+}
+
+// DelKey removes a key from the map that the JSON path leads to.
+// Returns ErrKeyNotFound if the key is not found.
+func (jf *JFile) DelKey(JSONpath string) error {
+	err := jf.rootnode.DelKey(JSONpath)
+	// Use the correct JSON function, depending on the pretty parameter
+	JSON := jf.rootnode.JSON
+	if jf.pretty {
 		JSON = jf.rootnode.PrettyJSON
 	}
 	data, err := JSON()
@@ -116,10 +139,11 @@ func AddJSON(filename, JSONpath string, JSONdata []byte, pretty bool) error {
 	if err != nil {
 		return err
 	}
-	return jf.AddJSON(JSONpath, JSONdata, pretty)
+	jf.SetPretty(pretty)
+	return jf.AddJSON(JSONpath, JSONdata)
 }
 
-// GetString will find the string that corresponds to the given JSON Path,
+// GetString will find the string that corresponds to the given JSON path,
 // given a filename and a simple JSON path expression.
 func GetString(filename, JSONpath string) (string, error) {
 	jf, err := NewFile(filename)
@@ -127,4 +151,14 @@ func GetString(filename, JSONpath string) (string, error) {
 		return "", err
 	}
 	return jf.GetString(JSONpath)
+}
+
+// DelKey removes a key from a map in a JSON file, given a JSON path,
+// where the last element of the path is the key to be removed.
+func DelKey(filename, JSONpath string) error {
+	jf, err := NewFile(filename)
+	if err != nil {
+		return err
+	}
+	return jf.DelKey(JSONpath)
 }

@@ -106,7 +106,7 @@ func TestSimplejson(t *testing.T) {
 	js.Set("test2", "setTest")
 	assert.Equal(t, "setTest", js.Get("test2").String())
 
-	js.Del("test2")
+	js.DelKey("test2")
 	assert.NotEqual(t, "setTest", js.Get("test2").String())
 
 	js.Get("test").Get("sub_obj").Set("a", 2)
@@ -433,5 +433,39 @@ func TestAdd2(t *testing.T) {
 	assert.Equal(t, nil, err)
 	newJSON, err := document.JSON()
 	assert.Equal(t, nil, err)
+	assert.Equal(t, string(newJSON), string(correctJSON))
+}
+
+// Test removal of keys
+func TestDel(t *testing.T) {
+	js, err := New([]byte(`{
+		"test": {
+			"string_list": ["asdf", "ghjk", "zxcv"],
+			"list": [1, "2", 3]
+		}
+	}`))
+	assert.NotEqual(t, nil, js, err)
+	assert.Equal(t, nil, err)
+
+	correctNode, err := New([]byte(`{
+		"test": {
+			"list": [1, "2", 3]
+		}
+	}`))
+	assert.NotEqual(t, correctNode, nil)
+	assert.Equal(t, err, nil)
+
+	correctJSON, err := correctNode.JSON()
+	assert.Equal(t, err, nil)
+
+	err = js.DelKey("blublublu")
+	assert.NotEqual(t, err, nil)
+
+	err = js.DelKey("x.test.string_list")
+	assert.Equal(t, err, nil)
+
+	newJSON, err := js.JSON()
+	assert.Equal(t, err, nil)
+
 	assert.Equal(t, string(newJSON), string(correctJSON))
 }

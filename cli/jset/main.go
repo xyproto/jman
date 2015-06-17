@@ -12,8 +12,8 @@ func main() {
 	flag.Parse()
 
 	if len(flag.Args()) != 3 {
-		fmt.Println("syntax: insert [filename] [JSON path] [value]")
-		fmt.Println("example: insert books.json x[1].author Catniss")
+		fmt.Println("Syntax: jset [filename] [JSON path] [value]")
+		fmt.Println("Example: jset books.json x[1].author Catniss")
 		os.Exit(1)
 	}
 
