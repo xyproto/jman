@@ -2,10 +2,15 @@
 package jman
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"reflect"
+	"strconv"
+	"strings"
 )
 
 // Stable API within the same major version number
@@ -28,6 +33,10 @@ var NilNode = &Node{nil}
 // New returns a pointer to a new `Node` object
 // after unmarshaling `body` bytes
 func New(body []byte) (*Node, error) {
+	if len(body) == 0 {
+		// Use an empty list if no data has been provided
+		body = []byte("[]")
+	}
 	j := new(Node)
 	err := j.UnmarshalJSON(body)
 	if err != nil {
@@ -48,13 +57,26 @@ func (j *Node) Interface() interface{} {
 	return j.data
 }
 
-// Encode returns its marshaled data as `[]byte`
-func (j *Node) Encode() ([]byte, error) {
-	return j.MarshalJSON()
+// JSON returns its marshaled data as `[]byte`
+func (j *Node) JSON() ([]byte, error) {
+	data, err := j.MarshalJSON()
+	if err != nil {
+		return []byte{}, err
+	}
+	return data, nil
 }
 
-// EncodePretty returns its marshaled data as `[]byte` with indentation
-func (j *Node) EncodePretty() ([]byte, error) {
+// MustJSON returns its marshaled data as `[]byte`
+func (j *Node) MustJSON() []byte {
+	data, err := j.MarshalJSON()
+	if err != nil {
+		return []byte{}
+	}
+	return data
+}
+
+// PrettyJSON returns its marshaled data as `[]byte` with indentation
+func (j *Node) PrettyJSON() ([]byte, error) {
 	return json.MarshalIndent(&j.data, "", "  ")
 }
 
@@ -135,10 +157,10 @@ func (j *Node) GetKey(key string) (*Node, bool) {
 }
 
 // GetIndex returns a pointer to a new `Node` object
-// for `index` in its `array` representation
+// for `index` in its slice representation
 // and a bool identifying success or failure
 func (j *Node) GetIndex(index int) (*Node, bool) {
-	a, ok := j.CheckSlice()
+	a, ok := j.CheckList()
 	if ok {
 		if len(a) > index {
 			return &Node{a[index]}, true
@@ -154,10 +176,10 @@ func (j *Node) GetIndex(index int) (*Node, bool) {
 //   newJs := js.Get("top_level", "entries", 3, "dict")
 func (j *Node) Get(branch ...interface{}) *Node {
 	jin, ok := j.CheckGet(branch...)
-	if ok {
-		return jin
+	if !ok {
+		return NilNode
 	}
-	return NilNode
+	return jin
 }
 
 // CheckGet is like Get, except it also returns a bool
@@ -199,7 +221,7 @@ func (j *Node) CheckNodeMap() (NodeMap, bool) {
 
 // CheckNodeList returns a copy of a slice, but with each value as a Node
 func (j *Node) CheckNodeList() ([]*Node, bool) {
-	a, ok := j.CheckSlice()
+	a, ok := j.CheckList()
 	if !ok {
 		return nil, false
 	}
@@ -218,8 +240,8 @@ func (j *Node) CheckMap() (map[string]interface{}, bool) {
 	return nil, false
 }
 
-// CheckSlice type asserts to an `array`
-func (j *Node) CheckSlice() ([]interface{}, bool) {
+// CheckList type asserts to a slice
+func (j *Node) CheckList() ([]interface{}, bool) {
 	if a, ok := (j.data).([]interface{}); ok {
 		return a, true
 	}
@@ -280,13 +302,13 @@ func (j *Node) NodeMap(args ...NodeMap) NodeMap {
 	return def
 }
 
-// Slice guarantees the return of a `[]interface{}` (with optional default)
+// List guarantees the return of a `[]interface{}` (with optional default)
 //
 // useful when you want to interate over array values in a succinct manner:
-//		for i, v := range js.Get("results").Slice() {
+//		for i, v := range js.Get("results").List() {
 //			fmt.Println(i, v)
 //		}
-func (j *Node) Slice(args ...[]interface{}) []interface{} {
+func (j *Node) List(args ...[]interface{}) []interface{} {
 	var def []interface{}
 
 	switch len(args) {
@@ -294,10 +316,10 @@ func (j *Node) Slice(args ...[]interface{}) []interface{} {
 	case 1:
 		def = args[0]
 	default:
-		log.Panicf("Slice() received too many arguments %d", len(args))
+		log.Panicf("List() received too many arguments %d", len(args))
 	}
 
-	if a, ok := j.CheckSlice(); ok {
+	if a, ok := j.CheckList(); ok {
 		return a
 	}
 
@@ -530,4 +552,107 @@ func (j *Node) CheckUint64() (uint64, bool) {
 		return reflect.ValueOf(j.data).Uint(), true
 	}
 	return 0, false
+}
+
+// GetNodes will find the JSON node (and parent node) that corresponds to the given JSON path
+func (j *Node) GetNodes(JSONpath string) (*Node, *Node, error) {
+	parent := j
+	if JSONpath == "x" || JSONpath == "" {
+		// If the root node is a map or list with one element or less, use that as the node
+		if m, ok := j.CheckNodeMap(); ok && len(m) <= 1 {
+			return parent, parent, nil
+		} else if l, ok := j.CheckNodeList(); ok && len(l) <= 1 {
+			return parent, parent, nil
+		}
+	}
+	// The "current node" starts out with being the root node
+	n := j
+	if strings.Contains(JSONpath, ".") {
+		for i, part := range strings.Split(JSONpath, ".") {
+			if i == 0 && (part == "" || part == "x") {
+				// If the current node is a map or list with one element or less, use that as the next node
+				if m, ok := n.CheckNodeMap(); ok && len(m) <= 1 {
+					n = parent
+				} else if l, ok := n.CheckNodeList(); ok && len(l) <= 1 {
+					n = parent
+				}
+			} else if strings.Contains(part, "[") {
+				fields := strings.SplitN(part, "[", 2)
+				name := fields[0]
+				secondpart := fields[1]
+				fields = strings.SplitN(secondpart, "]", 2)
+				stringIndex := fields[0]
+				index, err := strconv.Atoi(stringIndex)
+				if err != nil {
+					return nil, nil, errors.New("Invalid index: " + stringIndex)
+				}
+				parent = n
+				if name == "" {
+					n = n.Get(index)
+				} else {
+					parent = n.Get(name)
+					n = parent.Get(index)
+				}
+			} else {
+				parent = n
+				n = n.Get(part)
+			}
+		}
+	} else {
+		parent = n
+		part := JSONpath
+		n = n.Get(part)
+	}
+	return n, parent, nil
+}
+
+// GetNode will find the JSON node that corresponds to the given JSON path, or nil.
+func (j *Node) GetNode(JSONpath string) *Node {
+	node, _, err := j.GetNodes(JSONpath)
+	if err != nil {
+		return NilNode
+	}
+	return node
+}
+
+// AddJSON adds JSON data to a list. The JSON path must refer to a list.
+func (j *Node) AddJSON(JSONpath string, JSONdata []byte) error {
+	node := j.GetNode(JSONpath)
+	l, ok := node.CheckList()
+	if !ok {
+		return errors.New("Can only add JSON data to a list. Not a list: " + node.Info())
+	}
+	newNode, err := New(JSONdata)
+	if err != nil {
+		return err
+	}
+	node.data = append(l, newNode)
+	return nil
+}
+
+// Info returns a description of the node
+func (j *Node) Info() string {
+	var buf bytes.Buffer
+	if j == NilNode {
+		buf.WriteString("Nil Node")
+	} else if m, ok := j.CheckMap(); ok {
+		buf.WriteString(fmt.Sprintf("Map with %d elements.", len(m)))
+	} else if l, ok := j.CheckList(); ok {
+		buf.WriteString(fmt.Sprintf("List with %d elements.", len(l)))
+	} else if s, ok := j.CheckString(); ok {
+		buf.WriteString(fmt.Sprintf("String: %s", s))
+	} else if s, ok := j.CheckInt(); ok {
+		buf.WriteString(fmt.Sprintf("Int: %d", s))
+	} else if b, ok := j.CheckBool(); ok {
+		buf.WriteString(fmt.Sprintf("Bool: %v", b))
+	} else if i, ok := j.CheckInt64(); ok {
+		buf.WriteString(fmt.Sprintf("Int64: %v", i))
+	} else if u, ok := j.CheckUint64(); ok {
+		buf.WriteString(fmt.Sprintf("Uint64: %v", u))
+	} else if f, ok := j.CheckFloat64(); ok {
+		buf.WriteString(fmt.Sprintf("Float64: %v", f))
+	} else {
+		buf.WriteString("Unknown node type")
+	}
+	return buf.String()
 }

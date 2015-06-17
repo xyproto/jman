@@ -19,9 +19,9 @@ func main() {
 
 	filename := flag.Args()[0]
 	JSONpath := flag.Args()[1]
-	JSONdata := flag.Args()[2]
+	JSONdata := []byte(flag.Args()[2])
 
-	err := jman.AddJSON(filename, JSONpath, JSONdata)
+	err := jman.AddJSON(filename, JSONpath, JSONdata, true)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -1,11 +1,8 @@
 package jman
 
 import (
-	"bytes"
 	"errors"
 	"io/ioutil"
-	"strconv"
-	"strings"
 	"sync"
 )
 
@@ -35,69 +32,13 @@ func NewFile(filename string) (*JFile, error) {
 	return &JFile{filename, js, rw}, nil
 }
 
-// Add two byte slices together
-func badd(a, b []byte) []byte {
-	var buf bytes.Buffer
-	buf.Write(a)
-	buf.Write(b)
-	return buf.Bytes()
-}
-
-// Recursively look up a given JSON path
-func jsonpath(js *Node, JSONpath string) (*Node, string, error) {
-	if JSONpath == "" {
-		// Could not find end node
-		return js, JSONpath, ErrSpecificNode
-	}
-	firstpart := JSONpath
-	secondpart := ""
-	if strings.Contains(JSONpath, ".") {
-		fields := strings.SplitN(JSONpath, ".", 2)
-		firstpart = fields[0]
-		secondpart = fields[1]
-	}
-	if firstpart == "x" {
-		return jsonpath(js, secondpart)
-	} else if strings.Contains(firstpart, "[") && strings.Contains(firstpart, "]") {
-		fields := strings.SplitN(firstpart, "[", 2)
-		name := fields[0]
-		if name != "x" {
-			js = js.Get(name)
-		}
-		fields = strings.SplitN(fields[1], "]", 2)
-		index, err := strconv.Atoi(fields[0])
-		if err != nil {
-			return js, JSONpath, errors.New("Invalid index: " + fields[0] + " (" + err.Error() + ")")
-		}
-		node, ok := js.GetIndex(index)
-		if !ok {
-			return js, JSONpath, errors.New("Could not find index: " + fields[0])
-		}
-		return jsonpath(node, secondpart)
-	}
-	name := firstpart
-	if secondpart != "" {
-		return js, JSONpath, errors.New("JSON path left unparsed: " + secondpart)
-	}
-	return js.Get(name), "", nil
-}
-
-// GetNode will find the JSON node that corresponds to the given JSON path
+// GetNode tries to find the JSON node that corresponds to the given JSON path
 func (jf *JFile) GetNode(JSONpath string) (*Node, error) {
-	foundnode, leftoverpath, err := jsonpath(jf.rootnode, JSONpath)
-	if err != nil {
-		return nil, err
-	}
-	if leftoverpath != "" {
-		return nil, errors.New("JSON path left unparsed: " + leftoverpath)
-	}
-	if foundnode == nil {
-		return nil, errors.New("Could not lookup: " + JSONpath)
-	}
-	return foundnode, nil
+	node, _, err := jf.rootnode.GetNodes(JSONpath)
+	return node, err
 }
 
-// GetString will find the string that corresponds to the given JSON path
+// GetString tries to find the string that corresponds to the given JSON path
 func (jf *JFile) GetString(JSONpath string) (string, error) {
 	node, err := jf.GetNode(JSONpath)
 	if err != nil {
@@ -108,28 +49,19 @@ func (jf *JFile) GetString(JSONpath string) (string, error) {
 
 // SetString will change the value of the key that the given JSON path points to
 func (jf *JFile) SetString(JSONpath, value string) error {
-	firstpart := ""
-	lastpart := JSONpath
-	if strings.Contains(JSONpath, ".") {
-		pos := strings.LastIndex(JSONpath, ".")
-		firstpart = JSONpath[:pos]
-		lastpart = JSONpath[pos+1:]
-	}
-
-	node, _, err := jsonpath(jf.rootnode, firstpart)
-	if (err != nil) && (err != ErrSpecificNode) {
+	_, parentNode, err := jf.rootnode.GetNodes(JSONpath)
+	if err != nil {
 		return err
 	}
-
-	_, hasNode := node.CheckGet(lastpart)
-	if !hasNode {
-		return errors.New("Index out of range? Could not set value.")
+	m, ok := parentNode.CheckMap()
+	if !ok {
+		return errors.New("Parent is not a map: " + JSONpath)
 	}
 
-	// It's weird that simplejson Set does not return an error value
-	node.Set(lastpart, value)
+	// Set the string
+	m[lastpart(JSONpath)] = value
 
-	newdata, err := jf.rootnode.EncodePretty()
+	newdata, err := jf.rootnode.PrettyJSON()
 	if err != nil {
 		return err
 	}
@@ -141,70 +73,30 @@ func (jf *JFile) SetString(JSONpath, value string) error {
 func (jf *JFile) Write(data []byte) error {
 	jf.rw.Lock()
 	defer jf.rw.Unlock()
-	// TODO: Add newline as well?
 	return ioutil.WriteFile(jf.filename, data, 0666)
 }
 
 // AddJSON adds JSON data at the given JSON path
-func (jf *JFile) AddJSON(JSONpath, JSONdata string) error {
-	firstpart := ""
-	lastpart := JSONpath
-	if strings.Contains(JSONpath, ".") {
-		pos := strings.LastIndex(JSONpath, ".")
-		firstpart = JSONpath[:pos]
-		lastpart = JSONpath[pos+1:]
-	}
-
-	node, _, err := jsonpath(jf.rootnode, firstpart)
-	if (err != nil) && (err != ErrSpecificNode) {
-		return err
-	}
-
-	_, hasNode := node.CheckGet(lastpart)
-	if hasNode {
-		return errors.New("The JSON path should not point to a single key when adding JSON data.")
-	}
-
-	listJSON, err := node.Encode()
-	if err != nil {
-		return err
-	}
-
-	fullJSON, err := jf.rootnode.Encode()
-	if err != nil {
-		return err
-	}
-
-	if len(listJSON) == 0 {
-		return errors.New("Can not add to a completely empty list.")
-	}
-
-	// TODO: Implement a safer and more efficient way of adding data.
-	var newFullJSON []byte
-	if string(fullJSON) == "[]" {
-		newFullJSON = []byte("[" + JSONdata + "]")
+func (jf *JFile) AddJSON(JSONpath string, JSONdata []byte, pretty bool) error {
+	jf.rootnode.AddJSON(JSONpath, JSONdata)
+	var (
+		data []byte
+		err  error
+	)
+	if pretty {
+		data, err = jf.rootnode.PrettyJSON()
 	} else {
-		newFullJSON = bytes.Replace(fullJSON, listJSON, badd(listJSON[:len(listJSON)-1], []byte(","+JSONdata+"]")), 1)
+		data, err = jf.rootnode.JSON()
 	}
-	js, err := New(newFullJSON)
 	if err != nil {
 		return err
 	}
-
-	// Update the root node
-	jf.rootnode = js
-
-	newFullJSON, err = js.EncodePretty()
-	if err != nil {
-		return err
-	}
-
-	return jf.Write(newFullJSON)
+	return jf.Write(data)
 }
 
-// GetAll returns the current JSON data
-func (jf *JFile) GetAll() ([]byte, error) {
-	return jf.rootnode.EncodePretty()
+// JSON returns the current JSON data
+func (jf *JFile) JSON() ([]byte, error) {
+	return jf.rootnode.PrettyJSON()
 }
 
 // SetString sets a value to the given JSON file at the given JSON path
@@ -217,12 +109,12 @@ func SetString(filename, JSONpath, value string) error {
 }
 
 // AddJSON adds JSON data to the given JSON file at the given JSON path
-func AddJSON(filename, JSONpath, JSONdata string) error {
+func AddJSON(filename, JSONpath string, JSONdata []byte, pretty bool) error {
 	jf, err := NewFile(filename)
 	if err != nil {
 		return err
 	}
-	return jf.AddJSON(JSONpath, JSONdata)
+	return jf.AddJSON(JSONpath, JSONdata, pretty)
 }
 
 // GetString will find the string that corresponds to the given JSON Path,

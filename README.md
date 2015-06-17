@@ -2,6 +2,8 @@
 
 Interact with arbitrary JSON.
 
+*Under development*
+
 ### Example usage
 
 ~~~go

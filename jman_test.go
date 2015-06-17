@@ -14,10 +14,10 @@ func TestSimplejson(t *testing.T) {
 
 	js, err := New([]byte(`{
 		"test": {
-			"string_array": ["asdf", "ghjk", "zxcv"],
-			"string_array_null": ["abc", null, "efg"],
-			"array": [1, "2", 3],
-			"arraywithsubs": [{"subkeyone": 1},
+			"string_list": ["asdf", "ghjk", "zxcv"],
+			"string_list_null": ["abc", null, "efg"],
+			"list": [1, "2", 3],
+			"listwithsubs": [{"subkeyone": 1},
 			{"subkeytwo": 2, "subkeythree": 3}],
 			"int": 10,
 			"float": 5.150,
@@ -36,7 +36,7 @@ func TestSimplejson(t *testing.T) {
 	_, ok = js.CheckGet("missing_key")
 	assert.Equal(t, false, ok)
 
-	aws := js.Get("test").Get("arraywithsubs")
+	aws := js.Get("test").Get("listwithsubs")
 	assert.NotEqual(t, nil, aws)
 	var awsval int
 	awsval, _ = aws.Get(0).Get("subkeyone").CheckInt()
@@ -70,7 +70,7 @@ func TestSimplejson(t *testing.T) {
 	ms2 := js.Get("test").Get("missing_string").String("fyea")
 	assert.Equal(t, "fyea", ms2)
 
-	ma2 := js.Get("test").Get("missing_array").Slice([]interface{}{"1", 2, "3"})
+	ma2 := js.Get("test").Get("missing_list").List([]interface{}{"1", 2, "3"})
 	assert.Equal(t, ma2, []interface{}{"1", 2, "3"})
 
 	mm2 := js.Get("test").Get("missing_map").Map(map[string]interface{}{"found": false})
@@ -82,10 +82,10 @@ func TestSimplejson(t *testing.T) {
 	gp2, _ := js.Get("test", "int").CheckInt()
 	assert.Equal(t, 10, gp2)
 
-	gpa, _ := js.Get("test", "string_array", 0).CheckString()
+	gpa, _ := js.Get("test", "string_list", 0).CheckString()
 	assert.Equal(t, "asdf", gpa)
 
-	gpa2, _ := js.Get("test", "arraywithsubs", 1, "subkeythree").CheckInt()
+	gpa2, _ := js.Get("test", "listwithsubs", 1, "subkeythree").CheckInt()
 	assert.Equal(t, 3, gpa2)
 
 	jm, ok := js.Get("test").CheckNodeMap()
@@ -93,7 +93,7 @@ func TestSimplejson(t *testing.T) {
 	jmbool, _ := jm["bool"].CheckBool()
 	assert.Equal(t, true, jmbool)
 
-	ja, ok := js.Get("test", "string_array").CheckNodeList()
+	ja, ok := js.Get("test", "string_list").CheckNodeList()
 	assert.Equal(t, ok, true)
 	jastr, _ := ja[0].CheckString()
 	assert.Equal(t, "asdf", jastr)
@@ -118,7 +118,7 @@ func TestSimplejson(t *testing.T) {
 	jmm := js.Get("missing_map").NodeMap(NodeMap{"js1": js})
 	assert.Equal(t, js, jmm["js1"])
 
-	jma := js.Get("missing_array").NodeList(NodeList{js})
+	jma := js.Get("missing_list").NodeList(NodeList{js})
 	assert.Equal(t, js, jma[0])
 }
 
@@ -248,8 +248,8 @@ func TestPathWillOverwriteExisting(t *testing.T) {
 func TestNewFromReader(t *testing.T) {
 	buf := bytes.NewBuffer([]byte(`{
 		"test": {
-			"array": [1, "2", 3],
-			"arraywithsubs": [
+			"list": [1, "2", 3],
+			"listwithsubs": [
 				{"subkeyone": 1},
 				{"subkeytwo": 2, "subkeythree": 3}
 			],
@@ -262,7 +262,7 @@ func TestNewFromReader(t *testing.T) {
 	assert.NotEqual(t, nil, js)
 	assert.Equal(t, nil, err)
 
-	arr, _ := js.Get("test").Get("array").CheckSlice()
+	arr, _ := js.Get("test").Get("list").CheckList()
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
@@ -275,10 +275,10 @@ func TestNewFromReader(t *testing.T) {
 		assert.Equal(t, i+1, iv)
 	}
 
-	ma := js.Get("test").Get("array").Slice()
+	ma := js.Get("test").Get("list").List()
 	assert.Equal(t, ma, []interface{}{float64(1), "2", float64(3)})
 
-	mm := js.Get("test").Get("arraywithsubs").Get(0).Map()
+	mm := js.Get("test").Get("listwithsubs").Get(0).Map()
 	assert.Equal(t, mm, map[string]interface{}{"subkeyone": float64(1)})
 
 	assert.Equal(t, js.Get("test").Get("bignum").Int64(), int64(8000000000))
@@ -287,8 +287,8 @@ func TestNewFromReader(t *testing.T) {
 func TestSimplejson2(t *testing.T) {
 	js, err := New([]byte(`{
 		"test": {
-			"array": [1, "2", 3],
-			"arraywithsubs": [
+			"list": [1, "2", 3],
+			"listwithsubs": [
 				{"subkeyone": 1},
 				{"subkeytwo": 2, "subkeythree": 3}
 			],
@@ -299,7 +299,7 @@ func TestSimplejson2(t *testing.T) {
 	assert.NotEqual(t, nil, js)
 	assert.Equal(t, nil, err)
 
-	arr, _ := js.Get("test").Get("array").CheckSlice()
+	arr, _ := js.Get("test").Get("list").CheckList()
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
@@ -312,11 +312,102 @@ func TestSimplejson2(t *testing.T) {
 		assert.Equal(t, i+1, iv)
 	}
 
-	ma := js.Get("test").Get("array").Slice()
+	ma := js.Get("test").Get("list").List()
 	assert.Equal(t, ma, []interface{}{float64(1), "2", float64(3)})
 
-	mm := js.Get("test").Get("arraywithsubs").Get(0).Map()
+	mm := js.Get("test").Get("listwithsubs").Get(0).Map()
 	assert.Equal(t, mm, map[string]interface{}{"subkeyone": float64(1)})
 
 	assert.Equal(t, js.Get("test").Get("bignum").Int64(), int64(8000000000))
+}
+
+// Test simple JSON path expressions
+func TestPath(t *testing.T) {
+	js, _ := New([]byte(`{
+		"test": {
+			"string_list": ["asdf", "ghjk", "zxcv"],
+			"string_list_null": ["abc", null, "efg"],
+			"list": [1, "2", 3],
+			"listwithsubs": [{"subkeyone": 1},
+			{"subkeytwo": 2, "subkeythree": 3}],
+			"int": 10,
+			"float": 5.150,
+			"string": "simplejson",
+			"bool": true,
+			"sub_obj": {"a": 1}
+		}
+	}`))
+	var n *Node
+	n = js.GetNode("x")
+	assert.NotEqual(t, n, NilNode)
+	n = js.GetNode("x.test")
+	assert.NotEqual(t, n, NilNode)
+	n = js.GetNode("x.test.string_list")
+	assert.NotEqual(t, n, NilNode)
+	n = js.GetNode("x.test.string_list[1]")
+	assert.NotEqual(t, n, NilNode)
+	assert.Equal(t, "ghjk", n.String())
+	n = js.GetNode(".test.listwithsubs.[1].subkeytwo")
+	assert.Equal(t, 2, n.Int())
+}
+
+func TestAddEmpty(t *testing.T) {
+	// Set up a JSON document, data to be added and the correct output to compare with
+	documentJSON := []byte("")
+	someJSON := []byte(`{"x":"7", "y":"15"}`)
+	correctNode, err := New(badd(badd([]byte("["), someJSON), []byte("]")))
+	assert.Equal(t, nil, err)
+	correctJSON, err := correctNode.JSON()
+	assert.Equal(t, nil, err)
+
+	// Create a JSON document, add the data and compare
+	document, err := New(documentJSON)
+	assert.NotEqual(t, nil, document)
+	assert.Equal(t, nil, err)
+	err = document.AddJSON("x", someJSON)
+	assert.Equal(t, nil, err)
+	newJSON, err := document.JSON()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, string(newJSON), string(correctJSON))
+}
+
+func TestAddEmpty2(t *testing.T) {
+	// Set up an empty JSON document, data to be added and the correct output to compare with
+	documentJSON := []byte("[]")
+	someJSON := []byte(`{"x":"7", "y":"15"}`)
+	correctNode, err := New(badd(badd([]byte("["), someJSON), []byte("]"))) // Create a list when adding to en empty document
+	assert.Equal(t, nil, err)
+	correctJSON, err := correctNode.JSON()
+	assert.Equal(t, nil, err)
+
+	// Create a JSON document, add the data and compare
+	document, err := New(documentJSON)
+	assert.NotEqual(t, nil, document)
+	assert.Equal(t, nil, err)
+	err = document.AddJSON("x", someJSON)
+	assert.Equal(t, nil, err)
+	newJSON, err := document.JSON()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, string(newJSON), string(correctJSON))
+}
+
+func TestAdd(t *testing.T) {
+	// Set up a JSON document, data to be added and the correct output to compare with
+	contentJSON := []byte(`{"x":"2", "y":"3"}`)
+	documentJSON := badd(badd([]byte("["), contentJSON), []byte("]"))
+	someJSON := []byte(`{"x":"7", "y":"15"}`)
+	correctNode, err := New(badd(badd(badd([]byte("["), contentJSON), []byte(",")), badd(someJSON, []byte("]"))))
+	assert.Equal(t, nil, err)
+	correctJSON, err := correctNode.JSON()
+	assert.Equal(t, nil, err)
+
+	// Create a JSON document, add the data and compare
+	document, err := New(documentJSON)
+	assert.NotEqual(t, nil, document)
+	assert.Equal(t, nil, err)
+	err = document.AddJSON("x", someJSON)
+	assert.Equal(t, nil, err)
+	newJSON, err := document.JSON()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, string(newJSON), string(correctJSON))
 }
