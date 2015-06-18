@@ -57,6 +57,6 @@ Four small utilities for interacting with JSON files are included:
 General information
 -------------------
 
-* Version: 0.2
+* Version: 0.5
 * License: MIT
 * Alexander F Rødseth
