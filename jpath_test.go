@@ -371,7 +371,7 @@ func TestAddEmpty(t *testing.T) {
 	assert.Equal(t, nil, err)
 	newJSON, err := document.JSON()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, string(newJSON), string(correctJSON))
+	assert.Equal(t, true, bytes.Equal(newJSON, correctJSON))
 }
 
 func TestAddEmpty2(t *testing.T) {
@@ -391,7 +391,7 @@ func TestAddEmpty2(t *testing.T) {
 	assert.Equal(t, nil, err)
 	newJSON, err := document.JSON()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, string(newJSON), string(correctJSON))
+	assert.Equal(t, true, bytes.Equal(newJSON, correctJSON))
 }
 
 func TestAdd(t *testing.T) {
@@ -412,7 +412,7 @@ func TestAdd(t *testing.T) {
 	assert.Equal(t, nil, err)
 	newJSON, err := document.JSON()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, string(newJSON), string(correctJSON))
+	assert.Equal(t, true, bytes.Equal(newJSON, correctJSON))
 }
 
 func TestAdd2(t *testing.T) {
@@ -433,7 +433,7 @@ func TestAdd2(t *testing.T) {
 	assert.Equal(t, nil, err)
 	newJSON, err := document.JSON()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, string(newJSON), string(correctJSON))
+	assert.Equal(t, true, bytes.Equal(newJSON, correctJSON))
 }
 
 // Test removal of keys
@@ -467,5 +467,5 @@ func TestDel(t *testing.T) {
 	newJSON, err := js.JSON()
 	assert.Equal(t, err, nil)
 
-	assert.Equal(t, string(newJSON), string(correctJSON))
+	assert.Equal(t, true, bytes.Equal(newJSON, correctJSON))
 }
