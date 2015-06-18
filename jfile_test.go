@@ -1,4 +1,4 @@
-package jman
+package jpath
 
 import (
 	"github.com/bmizerany/assert"
@@ -12,7 +12,7 @@ func TestAddFile(t *testing.T) {
 	someJSON := []byte(`{"x":"2", "y":"3"}`)
 	documentJSON := []byte(`[{"x":"7", "y":"15"}]`)
 	finalJSON := []byte(`[{"x":"7","y":"15"},{"x":"2","y":"3"}]`)
-	tmpfile := "/tmp/___jman.json"
+	tmpfile := "/tmp/___jpath.json"
 	err = ioutil.WriteFile(tmpfile, documentJSON, 0666)
 	assert.Equal(t, nil, err)
 	defer os.Remove(tmpfile)
@@ -33,7 +33,7 @@ func TestGetFile(t *testing.T) {
 	)
 
 	documentJSON := []byte(`[{"x":"7","y":"15"},{"x":"2","y":"3"}]`)
-	tmpfile := "/tmp/___jman.json"
+	tmpfile := "/tmp/___jpath.json"
 	err = ioutil.WriteFile(tmpfile, documentJSON, 0666)
 	assert.Equal(t, nil, err)
 	defer os.Remove(tmpfile)

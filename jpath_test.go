@@ -1,4 +1,4 @@
-package jman
+package jpath
 
 import (
 	"bytes"

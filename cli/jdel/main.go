@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/xyproto/jman"
+	"github.com/xyproto/jpath"
 	"log"
 	"os"
 )
@@ -22,7 +22,7 @@ func main() {
 	filename := flag.Args()[0]
 	JSONpath := flag.Args()[1]
 
-	err := jman.DelKey(filename, JSONpath)
+	err := jpath.DelKey(filename, JSONpath)
 	if err != nil {
 		log.Fatal(err)
 	}

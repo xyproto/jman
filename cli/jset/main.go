@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/xyproto/jman"
+	"github.com/xyproto/jpath"
 	"log"
 	"os"
 )
@@ -21,7 +21,7 @@ func main() {
 	JSONpath := flag.Args()[1]
 	value := flag.Args()[2]
 
-	err := jman.SetString(filename, JSONpath, value)
+	err := jpath.SetString(filename, JSONpath, value)
 	if err != nil {
 		log.Fatal(err)
 	}

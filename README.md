@@ -1,4 +1,4 @@
-#JSON manager [![Build Status](https://travis-ci.org/xyproto/jman.svg?branch=master)](https://travis-ci.org/xyproto/jman) [![GoDoc](https://godoc.org/github.com/xyproto/jman?status.svg)](http://godoc.org/github.com/xyproto/jman)
+#JSON Path [![Build Status](https://travis-ci.org/xyproto/jpath.svg?branch=master)](https://travis-ci.org/xyproto/jpath) [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath)
 
 Interact with arbitrary JSON. Use simple JSON path expressions.
 
@@ -9,7 +9,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/xyproto/jman"
+	"github.com/xyproto/jpath"
 	"log"
 )
 
@@ -17,8 +17,8 @@ func main() {
 	// Some JSON
 	data := []byte(`{"a":2, "b":3}`)
 
-	// Create a new *jman.Node
-	js, err := jman.New(data)
+	// Create a new *jpath.Node
+	js, err := jpath.New(data)
 	if err != nil {
 		log.Fatal(err)
 	}

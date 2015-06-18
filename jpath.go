@@ -1,5 +1,5 @@
-// Package jman provides a way to search and manipulate JSON documents
-package jman
+// Package jpath provides a way to search and manipulate JSON documents
+package jpath
 
 import (
 	"bytes"
