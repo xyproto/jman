@@ -48,7 +48,7 @@ Four small utilities for interacting with JSON files are included:
 * jget - for retrieving a string value from a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jget books.json x[1].author`
 * jset - for setting JSON string values in a JSON file. Takes a filename, simple JSON path expression and a string.
-  * Example: `jset books.json x[1].author Catniss`
+  * Example: `jset books.json x[1].author Suzanne`
 * jdel - for removing a key from a map in a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jdel abc.json b`
 * jadd - for adding JSON data to a JSON file. Takes a filename, simple JSON path expression and JSON data.
