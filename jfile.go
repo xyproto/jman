@@ -90,7 +90,9 @@ func (jf *JFile) Write(data []byte) error {
 
 // AddJSON adds JSON data at the given JSON path. If pretty is true, the JSON is indented.
 func (jf *JFile) AddJSON(JSONpath string, JSONdata []byte) error {
-	jf.rootnode.AddJSON(JSONpath, JSONdata)
+	if err := jf.rootnode.AddJSON(JSONpath, JSONdata); err != nil {
+		return err
+	}
 	// Use the correct JSON function, depending on the pretty parameter
 	JSON := jf.rootnode.JSON
 	if jf.pretty {
