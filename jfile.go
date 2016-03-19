@@ -52,6 +52,9 @@ func (jf *JFile) SetRW(rw *sync.RWMutex) {
 // GetNode tries to find the JSON node that corresponds to the given JSON path
 func (jf *JFile) GetNode(JSONpath string) (*Node, error) {
 	node, _, err := jf.rootnode.GetNodes(JSONpath)
+	if node == NilNode {
+		return NilNode, errors.New("nil node")
+	}
 	return node, err
 }
 
