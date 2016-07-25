@@ -47,16 +47,16 @@ Four small utilities for interacting with JSON files are included:
 
 * jget - for retrieving a string value from a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jget books.json x[1].author`
-  * Installation: `go get github.com/jpath/cli/jget`
 * jset - for setting JSON string values in a JSON file. Takes a filename, simple JSON path expression and a string.
   * Example: `jset books.json x[1].author Suzanne`
-  * Installation: `go get github.com/jpath/cli/jset`
 * jdel - for removing a key from a map in a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jdel abc.json b`
-  * Installation: `go get github.com/jpath/cli/jdel`
 * jadd - for adding JSON data to a JSON file. Takes a filename, simple JSON path expression and JSON data.
   * Example: `jadd books.json x '{"author": "Joan Grass", "book": "The joys of gardening"}'`
-  * Installation: `go get github.com/jpath/cli/jadd`
+
+Installation
+
+`go get github.com/xyproto/jpath/cli/...`
 
 General information
 -------------------
