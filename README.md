@@ -58,6 +58,13 @@ Installation
 
 `go get github.com/xyproto/jpath/cli/...`
 
+TODO
+----
+
+* Support values that are not strings when running `jget`
+* Support wildcards in the JSON path expressions (like `x[*].id`)
+
+
 General information
 -------------------
 
