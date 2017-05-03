@@ -1,4 +1,4 @@
-#JSON Path [![Build Status](https://travis-ci.org/xyproto/jpath.svg?branch=master)](https://travis-ci.org/xyproto/jpath) [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath)
+# JSON Path [![Build Status](https://travis-ci.org/xyproto/jpath.svg?branch=master)](https://travis-ci.org/xyproto/jpath) [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath)
 
 Interact with arbitrary JSON. Use simple JSON path expressions.
 
