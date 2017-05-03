@@ -43,7 +43,7 @@ The `SetBranch` method for the `Node` struct also provides a way of accessing JS
 
 ### Utilities
 
-Four small utilities for interacting with JSON files are included:
+Four small utilities for interacting with JSON files are included. Note that these deals with strings only, not numbers or anything else!
 
 * jget - for retrieving a string value from a JSON file. Takes a filename and a simple JSON path expression.
   * Example: `jget books.json x[1].author`
@@ -61,7 +61,7 @@ Installation
 TODO
 ----
 
-* Support values that are not strings when running `jget`
+* Extend the utilities to also support numbers and other types
 * Support wildcards in the JSON path expressions (like `x[*].id`)
 
 
