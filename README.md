@@ -58,6 +58,6 @@ Four small utilities for interacting with JSON files are included. Note that the
 
 ### General information
 
-* Version: 0.6.0
+* Version: 0.6.1
 * License: BSD-3
 * Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;
