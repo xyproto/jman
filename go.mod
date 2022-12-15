@@ -1,11 +1,8 @@
-module github.com/xyproto/jnode
+module github.com/xyproto/jpath
 
 go 1.19
 
-require (
-	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
-	github.com/xyproto/jpath v0.0.0-20170503093552-c3c5db51d5ce
-)
+require github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869
 
 require (
 	github.com/kr/pretty v0.3.1 // indirect

@@ -10,6 +10,3 @@ github.com/kr/text
 # github.com/rogpeppe/go-internal v1.9.0
 ## explicit; go 1.17
 github.com/rogpeppe/go-internal/fmtsort
-# github.com/xyproto/jpath v0.0.0-20170503093552-c3c5db51d5ce
-## explicit
-github.com/xyproto/jpath
