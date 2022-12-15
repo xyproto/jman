@@ -1,8 +1,8 @@
-# JSON Path [![Build Status](https://travis-ci.org/xyproto/jpath.svg?branch=master)](https://travis-ci.org/xyproto/jpath) [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath)
+# JSON Path [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath)
 
-Interact with arbitrary JSON. Use simple JSON path expressions.
+A go package and a set of utilities for interacting with arbitrary JSON data.
 
-### Sample usage
+### Example usage
 
 ~~~go
 package main
@@ -31,15 +31,15 @@ func main() {
 }
 ~~~
 
-### JSON path expressions
+### Installation
+
+    go get github.com/xyproto/jpath/cmd/...
+
+### Path expressions
 
 Several of the available functions takes a simple JSON path expression, like `x.books[1].author`. Only simple expressions using `x` for the root node, names and integer indexes are supported as part of the path. For more advanced JSON path expressions, see [this blog post](http://goessner.net/articles/JsonPath/).
 
 The `SetBranch` method for the `Node` struct also provides a way of accessing JSON nodes, where the JSON names are supplied as a slice of strings.
-
-### Requirements
-
-* go >= 1.2
 
 ### Utilities
 
@@ -54,20 +54,8 @@ Four small utilities for interacting with JSON files are included. Note that the
 * jadd - for adding JSON data to a JSON file. Takes a filename, simple JSON path expression and JSON data.
   * Example: `jadd books.json x '{"author": "Joan Grass", "book": "The joys of gardening"}'`
 
-Installation
+### General information
 
-`go get github.com/xyproto/jpath/cli/...`
-
-TODO
-----
-
-* Extend the utilities to also support numbers and other types
-* Support wildcards in the JSON path expressions (like `x[*].id`)
-
-
-General information
--------------------
-
-* Version: 0.5.0
+* Version: 0.6.0
 * License: BSD-3
-* Alexander F Rødseth
+* Alexander F. Rødseth &lt;xyproto@archlinux.org&gt;

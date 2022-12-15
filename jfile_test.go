@@ -60,5 +60,3 @@ func TestGetFile(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, found, "2")
 }
-
-// TODO: add the cli tests that fail here
