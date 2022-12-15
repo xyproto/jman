@@ -1,0 +1,5 @@
+cmd/jadd/jadd
+cmd/jdel/jdel
+cmd/jget/jget
+cmd/jset/jset
+cmd/simple/simple
