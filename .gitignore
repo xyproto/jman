@@ -3,3 +3,4 @@ cmd/jdel/jdel
 cmd/jget/jget
 cmd/jset/jset
 cmd/simple/simple
+include.txt
