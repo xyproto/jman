@@ -8,26 +8,26 @@ Interact with arbitrary JSON. Use simple JSON path expressions.
 package main
 
 import (
-	"fmt"
-	"github.com/xyproto/jpath"
-	"log"
+    "fmt"
+    "github.com/xyproto/jpath"
+    "log"
 )
 
 func main() {
-	// Some JSON
-	data := []byte(`{"a":2, "b":3}`)
+    // Some JSON
+    data := []byte(`{"a":2, "b":3}`)
 
-	// Create a new *jpath.Node
-	js, err := jpath.New(data)
-	if err != nil {
-		log.Fatal(err)
-	}
+    // Create a new *jpath.Node
+    js, err := jpath.New(data)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	// Retrieve the value of "a", as an int
-	val := js.Get("a").Int()
+    // Retrieve the value of "a", as an int
+    val := js.Get("a").Int()
 
-	// Output the result
-	fmt.Println("a is", val)
+    // Output the result
+    fmt.Println("a is", val)
 }
 ~~~
 
@@ -68,6 +68,6 @@ TODO
 General information
 -------------------
 
-* Version: 0.5
-* License: MIT
+* Version: 0.5.0
+* License: BSD-3
 * Alexander F Rødseth
