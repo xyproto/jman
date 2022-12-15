@@ -3,9 +3,10 @@ package jpath
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/bmizerany/assert"
 	"strconv"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestSimplejson(t *testing.T) {
@@ -266,11 +267,11 @@ func TestNewFromReader(t *testing.T) {
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
-		switch v.(type) {
+		switch v := v.(type) {
 		case float64:
-			iv = int(v.(float64))
+			iv = int(v)
 		case string:
-			iv, _ = strconv.Atoi(v.(string))
+			iv, _ = strconv.Atoi(v)
 		}
 		assert.Equal(t, i+1, iv)
 	}
@@ -303,11 +304,11 @@ func TestSimplejson2(t *testing.T) {
 	assert.NotEqual(t, nil, arr)
 	for i, v := range arr {
 		var iv int
-		switch v.(type) {
+		switch v := v.(type) {
 		case float64:
-			iv = int(v.(float64))
+			iv = int(v)
 		case string:
-			iv, _ = strconv.Atoi(v.(string))
+			iv, _ = strconv.Atoi(v)
 		}
 		assert.Equal(t, i+1, iv)
 	}
