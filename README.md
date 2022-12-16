@@ -1,4 +1,4 @@
-# JSON Path [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath)
+# JSON Path [![GoDoc](https://godoc.org/github.com/xyproto/jpath?status.svg)](http://godoc.org/github.com/xyproto/jpath) [![Go Report Card](https://goreportcard.com/badge/github.com/xyproto/jpath)](https://goreportcard.com/report/github.com/xyproto/jpath)
 
 A go package and a set of utilities for interacting with arbitrary JSON data.
 
